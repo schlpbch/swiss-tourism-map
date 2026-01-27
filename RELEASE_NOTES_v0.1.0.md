@@ -1,7 +1,7 @@
-# Release Notes - v1.0.0
+# Release Notes - v0.1.0
 
 **Release Date:** January 27, 2026
-**Release Type:** Major Feature Release
+**Release Type:** Minor Feature Release
 
 ## 🌍 Multilingual Support (i18n)
 
@@ -234,14 +234,14 @@ None at this time. All unit tests passing (8/8).
 
 ## 🔮 Future Enhancements
 
-### Planned for v1.1.0
+### Planned for v0.2.0
 - [ ] Arabic (RTL support)
 - [ ] Spanish
 - [ ] Portuguese
 - [ ] Japanese
 - [ ] Korean
 
-### Planned for v2.0.0
+### Planned for v1.0.0
 - [ ] Dynamic translation loading (code splitting)
 - [ ] Translation management UI
 - [ ] Crowdsourced translations
@@ -329,4 +329,4 @@ All acceptance criteria from issue #35 have been fulfilled:
 
 ---
 
-**Full Changelog**: [v0.0.1...v1.0.0](https://github.com/schlpbch/swiss-tourism-map/compare/v0.0.1...v1.0.0)
+**Full Changelog**: [v0.0.1...v0.1.0](https://github.com/schlpbch/swiss-tourism-map/compare/v0.0.1...v0.1.0)
