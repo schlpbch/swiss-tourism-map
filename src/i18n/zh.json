@@ -12,5 +12,11 @@
   "loading": "加载中...",
   "error": "错误",
   "retry": "重试",
-  "close": "关闭"
+  "close": "关闭",
+  "pages": {
+    "home": "瑞士旅游地图",
+    "sights": "景点",
+    "resorts": "度假村",
+    "products": "产品"
+  }
 }

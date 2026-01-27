@@ -12,5 +12,11 @@
   "loading": "Loading...",
   "error": "Error",
   "retry": "Retry",
-  "close": "Close"
+  "close": "Close",
+  "pages": {
+    "home": "Swiss Tourism Map",
+    "sights": "Sights",
+    "resorts": "Resorts",
+    "products": "Products"
+  }
 }

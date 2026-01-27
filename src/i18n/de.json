@@ -12,5 +12,11 @@
   "loading": "Lädt...",
   "error": "Fehler",
   "retry": "Erneut versuchen",
-  "close": "Schließen"
+  "close": "Schließen",
+  "pages": {
+    "home": "Schweizer Tourismus Karte",
+    "sights": "Sehenswürdigkeiten",
+    "resorts": "Resorts",
+    "products": "Produkte"
+  }
 }

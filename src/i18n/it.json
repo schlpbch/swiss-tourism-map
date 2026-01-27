@@ -12,5 +12,11 @@
   "loading": "Caricamento...",
   "error": "Errore",
   "retry": "Riprova",
-  "close": "Chiudi"
+  "close": "Chiudi",
+  "pages": {
+    "home": "Mappa del turismo svizzero",
+    "sights": "Attrazioni",
+    "resorts": "Resort",
+    "products": "Prodotti"
+  }
 }

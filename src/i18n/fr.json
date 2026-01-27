@@ -12,5 +12,11 @@
   "loading": "Chargement...",
   "error": "Erreur",
   "retry": "Réessayer",
-  "close": "Fermer"
+  "close": "Fermer",
+  "pages": {
+    "home": "Carte du tourisme suisse",
+    "sights": "Sites touristiques",
+    "resorts": "Stations",
+    "products": "Produits"
+  }
 }
