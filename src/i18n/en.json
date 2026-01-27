@@ -1,4 +1,5 @@
 {
   "title": "Swiss Tourism Map",
-  "subtitle": "Sights • Resorts • Products"
+  "subtitle": "Sights • Resorts • Products",
+  "test_fallback_key": "English fallback value"
 }
