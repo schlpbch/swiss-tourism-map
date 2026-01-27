@@ -1,4 +1,16 @@
 {
   "title": "Carte du tourisme suisse",
-  "subtitle": "Sites touristiques • Stations • Produits"
+  "subtitle": "Sites touristiques • Stations • Produits",
+  "tagline": "Découvrir la Suisse",
+  "nav": {
+    "map": "Carte",
+    "sights": "Sites touristiques",
+    "resorts": "Stations",
+    "products": "Produits"
+  },
+  "language": "Langue",
+  "loading": "Chargement...",
+  "error": "Erreur",
+  "retry": "Réessayer",
+  "close": "Fermer"
 }

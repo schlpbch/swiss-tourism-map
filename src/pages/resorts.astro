@@ -1,0 +1,19 @@
+---
+/**
+ * Resorts page - Browse all Swiss alpine resorts
+ * Uses SBB Lyne Design System
+ */
+import BaseLayout from '../layouts/BaseLayout.astro';
+import SbbHeader from '../components/SbbHeader';
+import ResortsContainer from '../components/Resorts/ResortsContainer';
+---
+
+<BaseLayout title="Alpine Resorts">
+  <div class="flex flex-col h-screen">
+    <SbbHeader client:load />
+
+    <div class="flex-1 overflow-hidden">
+      <ResortsContainer client:load />
+    </div>
+  </div>
+</BaseLayout>

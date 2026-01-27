@@ -1,0 +1,22 @@
+---
+/**
+ * Main page with map and sidebar
+ * Uses SBB Lyne Design System
+ */
+import BaseLayout from '../layouts/BaseLayout.astro';
+import SbbHeader from '../components/SbbHeader';
+import MapContainer from '../components/Map/MapContainer';
+---
+
+<BaseLayout title="Schweizer Tourismus Karte">
+  <div class="flex flex-col h-screen">
+    <SbbHeader client:load />
+
+    <div class="flex-1 flex overflow-hidden">
+      <!-- Main map container -->
+      <main class="flex-1 relative">
+        <MapContainer client:only="react" />
+      </main>
+    </div>
+  </div>
+</BaseLayout>

@@ -1,0 +1,19 @@
+---
+/**
+ * Products page - displays tourism products
+ * Uses SBB Lyne Design System
+ */
+import BaseLayout from '../layouts/BaseLayout.astro';
+import SbbHeader from '../components/SbbHeader';
+import ProductsContainer from '../components/Products/ProductsContainer';
+---
+
+<BaseLayout title="Produkte | Schweizer Tourismus">
+  <div class="flex flex-col h-screen">
+    <SbbHeader client:load title="Produkte" />
+
+    <main class="flex-1 overflow-hidden">
+      <ProductsContainer client:only="react" />
+    </main>
+  </div>
+</BaseLayout>

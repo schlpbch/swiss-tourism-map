@@ -1,4 +1,16 @@
 {
   "title": "瑞士旅游地图",
-  "subtitle": "景点 • 度假村 • 产品"
+  "subtitle": "景点 • 度假村 • 产品",
+  "tagline": "探索瑞士",
+  "nav": {
+    "map": "地图",
+    "sights": "景点",
+    "resorts": "度假村",
+    "products": "产品"
+  },
+  "language": "语言",
+  "loading": "加载中...",
+  "error": "错误",
+  "retry": "重试",
+  "close": "关闭"
 }

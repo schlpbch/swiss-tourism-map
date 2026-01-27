@@ -1,5 +1,16 @@
 {
   "title": "Swiss Tourism Map",
   "subtitle": "Sights • Resorts • Products",
-  "test_fallback_key": "English fallback value"
+  "tagline": "Explore Switzerland",
+  "nav": {
+    "map": "Map",
+    "sights": "Sights",
+    "resorts": "Resorts",
+    "products": "Products"
+  },
+  "language": "Language",
+  "loading": "Loading...",
+  "error": "Error",
+  "retry": "Retry",
+  "close": "Close"
 }

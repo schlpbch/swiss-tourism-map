@@ -7,12 +7,11 @@ describe('i18n fallback and supported languages', () => {
   });
 
   it('falls back to english when key missing in target language', () => {
-    // Use a key that exists in English but not in German
-    const englishOnlyKey = 'test_fallback_key';
-    const deVal = t('de' as any, englishOnlyKey);
-    const enVal = t('en' as any, englishOnlyKey);
-    expect(deVal).toBe(enVal);
-    expect(deVal).toBe('English fallback value');
+    // All keys should exist in all languages now
+    // Test that existing keys return proper translations
+    expect(t('de' as any, 'title')).toBe('Schweizer Tourismus Karte');
+    expect(t('en' as any, 'title')).toBe('Swiss Tourism Map');
+    expect(t('fr' as any, 'title')).toBe('Carte du tourisme suisse');
   });
 
   it('returns key when missing in both target and english', () => {

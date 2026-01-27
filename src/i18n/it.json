@@ -1,4 +1,16 @@
 {
   "title": "Mappa del turismo svizzero",
-  "subtitle": "Attrazioni • Resort • Prodotti"
+  "subtitle": "Attrazioni • Resort • Prodotti",
+  "tagline": "Scopri la Svizzera",
+  "nav": {
+    "map": "Mappa",
+    "sights": "Attrazioni",
+    "resorts": "Resort",
+    "products": "Prodotti"
+  },
+  "language": "Lingua",
+  "loading": "Caricamento...",
+  "error": "Errore",
+  "retry": "Riprova",
+  "close": "Chiudi"
 }
