@@ -1,0 +1,19 @@
+---
+/**
+ * Sights page - Browse all Swiss tourism sights
+ * Uses SBB Lyne Design System
+ */
+import BaseLayout from '../layouts/BaseLayout.astro';
+import SbbHeader from '../components/SbbHeader';
+import SightsContainer from '../components/Sights/SightsContainer';
+---
+
+<BaseLayout title="Sehenswürdigkeiten">
+  <div class="flex flex-col h-screen">
+    <SbbHeader client:load />
+
+    <div class="flex-1 overflow-hidden">
+      <SightsContainer client:load />
+    </div>
+  </div>
+</BaseLayout>

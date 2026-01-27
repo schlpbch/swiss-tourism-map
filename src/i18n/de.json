@@ -1,4 +1,16 @@
 {
   "title": "Schweizer Tourismus Karte",
-  "subtitle": "Sehenswürdigkeiten • Resorts • Produkte"
+  "subtitle": "Sehenswürdigkeiten • Resorts • Produkte",
+  "tagline": "Schweiz erkunden",
+  "nav": {
+    "map": "Karte",
+    "sights": "Sehenswürdigkeiten",
+    "resorts": "Resorts",
+    "products": "Produkte"
+  },
+  "language": "Sprache",
+  "loading": "Lädt...",
+  "error": "Fehler",
+  "retry": "Erneut versuchen",
+  "close": "Schließen"
 }

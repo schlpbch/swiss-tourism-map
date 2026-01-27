@@ -1,0 +1,58 @@
+---
+/**
+ * Base layout for all pages
+ * Uses SBB Lyne Design System with i18n support
+ */
+import '../styles/sbb-variables.css';
+import '../styles/global.css';
+import type { Lang } from '../i18n';
+
+interface Props {
+  title?: string;
+  description?: string;
+  lang?: Lang;
+}
+
+const {
+  title = 'Schweizer Tourismus Karte',
+  description = 'Interaktive Karte mit Sehenswürdigkeiten, Resorts und Produkten der Schweiz',
+  lang = 'de'
+} = Astro.props;
+---
+
+<!doctype html>
+<html lang={lang}>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="description" content={description} />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#eb0000" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+
+    <!-- SBB Web Font -->
+    <link
+      rel="preconnect"
+      href="https://cdn.app.sbb.ch"
+      crossorigin="anonymous"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.app.sbb.ch/fonts/SBBWeb/SBBWeb.css"
+    />
+
+    <!-- Fonts for CJK (Chinese) and Devanagari (Hindi) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&family=Noto+Sans+Devanagari:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <title>{title}</title>
+  </head>
+  <body>
+    <div id="app" class="h-screen w-screen overflow-hidden">
+      <slot />
+    </div>
+  </body>
+</html>
