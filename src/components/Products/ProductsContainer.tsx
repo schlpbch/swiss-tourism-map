@@ -49,7 +49,13 @@ export default function ProductsContainer() {
         setError(null);
 
         console.log('[Products] Initializing MCP connection...');
-        await initializeMcp();
+
+        // Add timeout wrapper to prevent hanging
+        const timeoutPromise = new Promise((_, reject) =>
+          setTimeout(() => reject(new Error('MCP initialization timeout')), 15000)
+        );
+
+        await Promise.race([initializeMcp(), timeoutPromise]);
         console.log('[Products] MCP connection initialized');
 
         console.log('[Products] Fetching products from backend...');
@@ -57,21 +63,36 @@ export default function ProductsContainer() {
         const [railaway, travel, holiday] = await Promise.all([
           (async () => {
             console.log('[Products] → Calling searchRailAway (limit=50, language=' + language + ')');
-            const result = await searchRailAway({ limit: 50, language });
-            console.log('[Products] ← searchRailAway returned:', result.length, 'products');
-            return result;
+            try {
+              const result = await searchRailAway({ limit: 50, language });
+              console.log('[Products] ← searchRailAway returned:', result.length, 'products');
+              return result;
+            } catch (e) {
+              console.error('[Products] ✗ searchRailAway error:', e);
+              return [];
+            }
           })(),
           (async () => {
             console.log('[Products] → Calling searchTravelSystem (limit=50, language=' + language + ')');
-            const result = await searchTravelSystem({ limit: 50, language });
-            console.log('[Products] ← searchTravelSystem returned:', result.length, 'products');
-            return result;
+            try {
+              const result = await searchTravelSystem({ limit: 50, language });
+              console.log('[Products] ← searchTravelSystem returned:', result.length, 'products');
+              return result;
+            } catch (e) {
+              console.error('[Products] ✗ searchTravelSystem error:', e);
+              return [];
+            }
           })(),
           (async () => {
             console.log('[Products] → Calling searchHolidayProducts (limit=50, language=' + language + ')');
-            const result = await searchHolidayProducts({ limit: 50, language });
-            console.log('[Products] ← searchHolidayProducts returned:', result.length, 'products');
-            return result;
+            try {
+              const result = await searchHolidayProducts({ limit: 50, language });
+              console.log('[Products] ← searchHolidayProducts returned:', result.length, 'products');
+              return result;
+            } catch (e) {
+              console.error('[Products] ✗ searchHolidayProducts error:', e);
+              return [];
+            }
           })(),
         ]);
 
@@ -87,7 +108,8 @@ export default function ProductsContainer() {
         setHolidayProducts(holiday);
       } catch (err) {
         console.error('[Products] ✗ Error loading products:', err);
-        setError('Fehler beim Laden der Produkte vom MCP-Server.');
+        const errorMsg = err instanceof Error ? err.message : 'Fehler beim Laden der Produkte vom MCP-Server.';
+        setError(errorMsg);
       } finally {
         setLoading(false);
       }
