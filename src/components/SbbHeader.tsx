@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useLanguageStore } from '../store/languageStore';
 import { t, languageNames, supportedLangs } from '../i18n';
 import type { Lang } from '../i18n';
@@ -8,17 +8,21 @@ interface SbbHeaderProps {
 }
 
 const navItems = [
-  { href: '/', key: 'nav.map', icon: '🗺️' },
-  { href: '/sights', key: 'nav.sights', icon: '🏔️' },
-  { href: '/resorts', key: 'nav.resorts', icon: '⛷️' },
-  { href: '/products', key: 'nav.products', icon: '🎫' },
+  { href: '/', key: 'nav.map' },
+  { href: '/sights', key: 'nav.sights' },
+  { href: '/resorts', key: 'nav.resorts' },
+  { href: '/products', key: 'nav.products' },
 ];
 
 export default function SbbHeader({ onLanguageChange }: SbbHeaderProps) {
   const { language, setLanguage } = useLanguageStore();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [currentPath, setCurrentPath] = useState('/');
 
-  const currentPath = typeof window !== 'undefined' ? window.location.pathname : '/';
+  // Update current path on mount and when location changes
+  useEffect(() => {
+    setCurrentPath(window.location.pathname);
+  }, []);
 
   const handleLanguageChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     const newLang = event.target.value as Lang;
@@ -85,7 +89,7 @@ export default function SbbHeader({ onLanguageChange }: SbbHeaderProps) {
               <a
                 key={item.href}
                 href={item.href}
-                className="px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 flex items-center gap-2"
+                className="px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200"
                 style={{
                   backgroundColor: isActive ? 'var(--sbb-color-milk)' : 'transparent',
                   color: isActive ? 'var(--sbb-color-red)' : 'var(--sbb-color-charcoal)',
@@ -103,7 +107,6 @@ export default function SbbHeader({ onLanguageChange }: SbbHeaderProps) {
                   }
                 }}
               >
-                <span>{item.icon}</span>
                 {t(language, item.key)}
               </a>
             );
@@ -186,13 +189,12 @@ export default function SbbHeader({ onLanguageChange }: SbbHeaderProps) {
                 key={item.href}
                 href={item.href}
                 onClick={() => setMobileMenuOpen(false)}
-                className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all"
+                className="px-3 py-2 rounded-lg text-sm font-medium transition-all"
                 style={{
                   backgroundColor: isActive ? 'var(--sbb-color-cloud)' : 'transparent',
                   color: isActive ? 'var(--sbb-color-red)' : 'var(--sbb-color-charcoal)',
                 }}
               >
-                <span>{item.icon}</span>
                 {t(language, item.key)}
               </a>
             );
