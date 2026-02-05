@@ -5,8 +5,8 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import type { Resort, Season } from '../../types/resort';
-import { SEASON_LABELS } from '../../types/resort';
-import { getResorts } from '../../api/resorts';
+import { SEASON_LABELS, RESORT_ACTIVITIES } from '../../types/resort';
+import { getResorts, calculateDistance } from '../../api/resorts';
 import { initializeMcp } from '../../api/mcp-client';
 
 export default function ResortsContainer() {
@@ -23,6 +23,21 @@ export default function ResortsContainer() {
   const [maxElevation, setMaxElevation] = useState(5000);
   const [searchQuery, setSearchQuery] = useState('');
 
+  // Phase 1A: Elevation filter bounds
+  const [elevationFilterMin, setElevationFilterMin] = useState(0);
+  const [elevationFilterMax, setElevationFilterMax] = useState(5000);
+
+  // Phase 1B: Sort option
+  const [sortBy, setSortBy] = useState<'name' | 'elevation-high' | 'elevation-low' | 'region'>('name');
+
+  // Phase 1D: Distance filter
+  const [userLocation, setUserLocation] = useState<{lat: number, lng: number} | null>(null);
+  const [maxDistance, setMaxDistance] = useState<number>(100); // km
+  const [locationError, setLocationError] = useState<string | null>(null);
+
+  // Phase 2B: Activities filter
+  const [selectedActivities, setSelectedActivities] = useState<Set<string>>(new Set());
+
   // Load data
   useEffect(() => {
     async function loadResorts() {
@@ -38,8 +53,13 @@ export default function ResortsContainer() {
         // Set elevation range based on actual data
         if (data.length > 0) {
           const elevations = data.map(r => r.elevation);
-          setMinElevation(Math.min(...elevations));
-          setMaxElevation(Math.max(...elevations));
+          const min = Math.min(...elevations);
+          const max = Math.max(...elevations);
+          setMinElevation(min);
+          setMaxElevation(max);
+          // Initialize filter bounds to full range
+          setElevationFilterMin(min);
+          setElevationFilterMax(max);
         }
       } catch (err) {
         console.error('Error loading resorts:', err);
@@ -72,6 +92,32 @@ export default function ResortsContainer() {
         }
       }
 
+      // Phase 1A: Elevation filter
+      if (resort.elevation < elevationFilterMin || resort.elevation > elevationFilterMax) {
+        return false;
+      }
+
+      // Phase 1D: Distance filter
+      if (userLocation && maxDistance < 500) { // 500km is the max range
+        const distance = calculateDistance(
+          userLocation.lat, userLocation.lng,
+          resort.coordinates.latitude, resort.coordinates.longitude
+        );
+        if (distance > maxDistance) {
+          return false;
+        }
+      }
+
+      // Phase 2B: Activities filter
+      if (selectedActivities.size > 0 && resort.activities) {
+        const hasActivity = resort.activities.some(activity =>
+          selectedActivities.has(activity)
+        );
+        if (!hasActivity) {
+          return false;
+        }
+      }
+
       // Search query filter
       if (searchQuery) {
         const query = searchQuery.toLowerCase();
@@ -82,7 +128,7 @@ export default function ResortsContainer() {
 
       return true;
     });
-  }, [resorts, selectedSeasons, selectedRegion, searchQuery]);
+  }, [resorts, selectedSeasons, selectedRegion, searchQuery, elevationFilterMin, elevationFilterMax, userLocation, maxDistance, selectedActivities]);
 
   // Get unique regions
   const regions = useMemo(() => {
@@ -102,6 +148,23 @@ export default function ResortsContainer() {
       max: Math.max(...elevations),
     };
   }, [resorts]);
+
+  // Phase 1B: Sort resorts
+  const sortedResorts = useMemo(() => {
+    const sorted = [...filteredResorts];
+    switch(sortBy) {
+      case 'name':
+        return sorted.sort((a, b) => a.name.localeCompare(b.name));
+      case 'elevation-high':
+        return sorted.sort((a, b) => b.elevation - a.elevation);
+      case 'elevation-low':
+        return sorted.sort((a, b) => a.elevation - b.elevation);
+      case 'region':
+        return sorted.sort((a, b) => a.region.localeCompare(b.region));
+      default:
+        return sorted;
+    }
+  }, [filteredResorts, sortBy]);
 
   // Loading state
   if (loading) {
@@ -138,7 +201,7 @@ export default function ResortsContainer() {
           }}
         >
           <div className="text-5xl mb-4" style={{ color: 'var(--sbb-color-red)' }}>
-            ⚠
+            !
           </div>
           <p className="text-sm" style={{ color: 'var(--sbb-color-granite)' }}>
             {error}
@@ -198,12 +261,6 @@ export default function ResortsContainer() {
           <div className="space-y-2">
             {(['winter', 'spring', 'summer', 'autumn'] as Season[]).map(season => {
               const isSelected = selectedSeasons.has(season);
-              const seasonEmojis: Record<Season, string> = {
-                'winter': '❄️',
-                'spring': '🌸',
-                'summer': '☀️',
-                'autumn': '🍂'
-              };
               return (
                 <label
                   key={season}
@@ -229,7 +286,7 @@ export default function ResortsContainer() {
                     className="rounded"
                   />
                   <span className="text-sm" style={{ color: 'var(--sbb-color-charcoal)' }}>
-                    {seasonEmojis[season]} {SEASON_LABELS[season]}
+                    {SEASON_LABELS[season]}
                   </span>
                 </label>
               );
@@ -264,22 +321,160 @@ export default function ResortsContainer() {
           </select>
         </div>
 
-        {/* Elevation Info */}
+        {/* Phase 1A: Elevation Filter */}
         <div className="mb-6">
           <label
             className="block text-sm font-medium mb-2"
             style={{ color: 'var(--sbb-color-charcoal)' }}
           >
-            Höhenlage
+            Höhenlage: {elevationFilterMin}m - {elevationFilterMax}m
           </label>
-          <div
-            className="px-3 py-2 rounded-lg text-sm"
+          <div className="space-y-3">
+            <div>
+              <label className="block text-xs mb-1" style={{ color: 'var(--sbb-color-granite)' }}>
+                Min: {elevationFilterMin}m
+              </label>
+              <input
+                type="range"
+                min={minElevation}
+                max={maxElevation}
+                value={elevationFilterMin}
+                onChange={(e) => {
+                  const newMin = Number(e.target.value);
+                  if (newMin <= elevationFilterMax) {
+                    setElevationFilterMin(newMin);
+                  }
+                }}
+                className="w-full"
+              />
+            </div>
+            <div>
+              <label className="block text-xs mb-1" style={{ color: 'var(--sbb-color-granite)' }}>
+                Max: {elevationFilterMax}m
+              </label>
+              <input
+                type="range"
+                min={minElevation}
+                max={maxElevation}
+                value={elevationFilterMax}
+                onChange={(e) => {
+                  const newMax = Number(e.target.value);
+                  if (newMax >= elevationFilterMin) {
+                    setElevationFilterMax(newMax);
+                  }
+                }}
+                className="w-full"
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Phase 1D: Distance Filter */}
+        <div className="mb-6">
+          <label
+            className="block text-sm font-medium mb-2"
+            style={{ color: 'var(--sbb-color-charcoal)' }}
+          >
+            Nähe
+          </label>
+          <button
+            onClick={() => {
+              setLocationError(null);
+              if ('geolocation' in navigator) {
+                navigator.geolocation.getCurrentPosition(
+                  (position) => {
+                    setUserLocation({
+                      lat: position.coords.latitude,
+                      lng: position.coords.longitude,
+                    });
+                    setLocationError(null);
+                  },
+                  (error) => {
+                    setLocationError('Standort konnte nicht ermittelt werden');
+                    setUserLocation(null);
+                  }
+                );
+              } else {
+                setLocationError('Geolocation wird nicht unterstützt');
+              }
+            }}
+            className="w-full px-3 py-2 rounded-lg text-sm font-medium transition-colors mb-2"
             style={{
-              backgroundColor: 'var(--sbb-color-cloud)',
-              color: 'var(--sbb-color-charcoal)',
+              backgroundColor: userLocation ? 'var(--sbb-color-sky-light)' : 'var(--sbb-color-white)',
+              color: userLocation ? 'white' : 'var(--sbb-color-charcoal)',
+              border: '1px solid var(--sbb-color-cloud)',
+              cursor: 'pointer',
             }}
           >
-            {elevationRange.min}m - {elevationRange.max}m
+            {userLocation ? 'Standort aktiviert' : 'Meinen Standort verwenden'}
+          </button>
+          {locationError && (
+            <p className="text-xs mb-2" style={{ color: 'var(--sbb-color-red)' }}>
+              {locationError}
+            </p>
+          )}
+          {userLocation && (
+            <div>
+              <label className="block text-xs mb-1" style={{ color: 'var(--sbb-color-granite)' }}>
+                Radius: {maxDistance} km
+              </label>
+              <input
+                type="range"
+                min="1"
+                max="500"
+                step="10"
+                value={maxDistance}
+                onChange={(e) => setMaxDistance(Number(e.target.value))}
+                className="w-full"
+              />
+              <p className="text-xs mt-2" style={{ color: 'var(--sbb-color-granite)' }}>
+                Resorts werden innerhalb von {maxDistance} km gefiltert
+              </p>
+            </div>
+          )}
+        </div>
+
+        {/* Phase 2B: Activities Filter */}
+        <div className="mb-6">
+          <label
+            className="block text-sm font-medium mb-2"
+            style={{ color: 'var(--sbb-color-charcoal)' }}
+          >
+            Aktivitäten
+          </label>
+          <div className="space-y-2">
+            {RESORT_ACTIVITIES.map(activity => {
+              const isSelected = selectedActivities.has(activity);
+              return (
+                <label
+                  key={activity}
+                  className="flex items-center gap-2 cursor-pointer px-2 py-1 rounded transition-colors"
+                  style={{
+                    backgroundColor: isSelected ? 'var(--sbb-color-cloud)' : 'transparent',
+                  }}
+                >
+                  <input
+                    type="checkbox"
+                    checked={isSelected}
+                    onChange={() => {
+                      setSelectedActivities(prev => {
+                        const next = new Set(prev);
+                        if (next.has(activity)) {
+                          next.delete(activity);
+                        } else {
+                          next.add(activity);
+                        }
+                        return next;
+                      });
+                    }}
+                    className="rounded"
+                  />
+                  <span className="text-sm" style={{ color: 'var(--sbb-color-charcoal)' }}>
+                    {activity}
+                  </span>
+                </label>
+              );
+            })}
           </div>
         </div>
 
@@ -289,6 +484,17 @@ export default function ResortsContainer() {
             setSelectedSeasons(new Set(['winter', 'spring', 'summer', 'autumn']));
             setSelectedRegion('all');
             setSearchQuery('');
+            // Phase 1A: Reset elevation filter
+            setElevationFilterMin(minElevation);
+            setElevationFilterMax(maxElevation);
+            // Phase 1B: Reset sort
+            setSortBy('name');
+            // Phase 1D: Reset distance filter
+            setUserLocation(null);
+            setMaxDistance(100);
+            setLocationError(null);
+            // Phase 2B: Reset activities filter
+            setSelectedActivities(new Set());
           }}
           className="w-full px-4 py-2 rounded text-sm font-medium transition-colors"
           style={{
@@ -308,12 +514,31 @@ export default function ResortsContainer() {
 
       {/* Main Content */}
       <div className="flex-1 overflow-y-auto p-6">
-        <h1
-          className="text-2xl font-bold mb-6"
-          style={{ color: 'var(--sbb-color-charcoal)' }}
-        >
-          Schweizer Alpine Resorts
-        </h1>
+        <div className="flex items-center justify-between mb-6">
+          <h1
+            className="text-2xl font-bold"
+            style={{ color: 'var(--sbb-color-charcoal)' }}
+          >
+            Schweizer Alpine Resorts
+          </h1>
+          {/* Phase 1B: Sort Dropdown */}
+          <select
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value as typeof sortBy)}
+            className="px-3 py-2 rounded-lg text-sm font-medium"
+            style={{
+              backgroundColor: 'var(--sbb-color-milk)',
+              color: 'var(--sbb-color-charcoal)',
+              border: '1px solid var(--sbb-color-cloud)',
+              cursor: 'pointer',
+            }}
+          >
+            <option value="name">Nach Name</option>
+            <option value="elevation-high">Höhe (hoch zu tief)</option>
+            <option value="elevation-low">Höhe (tief zu hoch)</option>
+            <option value="region">Nach Region</option>
+          </select>
+        </div>
 
         {filteredResorts.length === 0 ? (
           <div className="text-center py-12">
@@ -323,7 +548,7 @@ export default function ResortsContainer() {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {filteredResorts.map(resort => (
+            {sortedResorts.map(resort => (
               <ResortCard key={resort.name} resort={resort} />
             ))}
           </div>
@@ -335,13 +560,6 @@ export default function ResortsContainer() {
 
 // Resort Card Component
 function ResortCard({ resort }: { resort: Resort }) {
-  const seasonEmojis: Record<Season, string> = {
-    'winter': '❄️',
-    'spring': '🌸',
-    'summer': '☀️',
-    'autumn': '🍂'
-  };
-
   return (
     <div
       className="rounded-lg shadow-sm overflow-hidden flex flex-col transition-all cursor-pointer"
@@ -361,7 +579,7 @@ function ResortCard({ resort }: { resort: Resort }) {
         className="px-4 py-2 text-xs font-medium"
         style={{ backgroundColor: 'var(--sbb-color-orange-light)', color: 'white' }}
       >
-        🏔️ Alpine Resort
+        Alpine Resort
       </div>
 
       {/* Content */}
@@ -374,20 +592,65 @@ function ResortCard({ resort }: { resort: Resort }) {
         </h3>
 
         <p
-          className="text-xs mb-2 flex items-center gap-1"
+          className="text-xs mb-2"
           style={{ color: 'var(--sbb-color-granite)' }}
         >
-          <span>📍</span>
           {resort.region}
         </p>
 
         <p
-          className="text-xs mb-3 flex items-center gap-1"
+          className="text-xs mb-3"
           style={{ color: 'var(--sbb-color-granite)' }}
         >
-          <span>⛰️</span>
           {resort.elevation}m ü. M.
         </p>
+
+        {/* Phase 1C: Coordinates Display */}
+        <p
+          className="text-xs mb-3"
+          style={{ color: 'var(--sbb-color-granite)' }}
+        >
+          {resort.coordinates.latitude.toFixed(2)}°N, {resort.coordinates.longitude.toFixed(2)}°E
+        </p>
+
+        {/* Phase 2C: Description Text */}
+        {resort.description && (
+          <p
+            className="text-sm mb-3 line-clamp-3"
+            style={{ color: 'var(--sbb-color-granite)' }}
+          >
+            {resort.description}
+          </p>
+        )}
+
+        {/* Phase 2B: Activity Tags */}
+        {resort.activities && resort.activities.length > 0 && (
+          <div className="mb-3 flex flex-wrap gap-1">
+            {resort.activities.slice(0, 4).map((activity, i) => (
+              <span
+                key={i}
+                className="text-xs px-2 py-0.5 rounded"
+                style={{
+                  backgroundColor: 'var(--sbb-color-cloud)',
+                  color: 'var(--sbb-color-charcoal)'
+                }}
+              >
+                {activity}
+              </span>
+            ))}
+            {resort.activities.length > 4 && (
+              <span
+                className="text-xs px-2 py-0.5 rounded"
+                style={{
+                  backgroundColor: 'var(--sbb-color-cloud)',
+                  color: 'var(--sbb-color-charcoal)'
+                }}
+              >
+                +{resort.activities.length - 4}
+              </span>
+            )}
+          </div>
+        )}
 
         {/* Seasons */}
         <div className="mb-4">
@@ -407,11 +670,192 @@ function ResortCard({ resort }: { resort: Resort }) {
                   color: 'white'
                 }}
               >
-                {seasonEmojis[season]} {SEASON_LABELS[season]}
+                {SEASON_LABELS[season]}
               </span>
             ))}
           </div>
         </div>
+
+        {/* Phase 2D: Enhanced Season Information */}
+        {resort.seasonDetails && (
+          <div className="mb-4 border-t pt-3" style={{ borderColor: 'var(--sbb-color-cloud)' }}>
+            {resort.seasonDetails.winter?.skiArea && (
+              <p className="text-xs mb-2" style={{ color: 'var(--sbb-color-granite)' }}>
+                Skigebiet: {resort.seasonDetails.winter.skiArea}
+              </p>
+            )}
+            {resort.seasonDetails.summer?.hikingTrails && (
+              <p className="text-xs mb-2" style={{ color: 'var(--sbb-color-granite)' }}>
+                Wanderwege: {resort.seasonDetails.summer.hikingTrails}
+              </p>
+            )}
+            {resort.seasonDetails.winter?.months && (
+              <p className="text-xs mb-2" style={{ color: 'var(--sbb-color-granite)' }}>
+                Winter: {resort.seasonDetails.winter.months.join(', ')}
+              </p>
+            )}
+            {resort.seasonDetails.summer?.months && (
+              <p className="text-xs" style={{ color: 'var(--sbb-color-granite)' }}>
+                Sommer: {resort.seasonDetails.summer.months.join(', ')}
+              </p>
+            )}
+          </div>
+        )}
+
+        {/* Phase 3: Resort Details Grid */}
+        {(resort.verticalDrop || resort.lifts || resort.maxElevation || resort.difficulty) && (
+          <div className="mb-4 border-t pt-3" style={{ borderColor: 'var(--sbb-color-cloud)' }}>
+            <div className="grid grid-cols-2 gap-3">
+              {resort.maxElevation && (
+                <div>
+                  <p className="text-xs font-semibold" style={{ color: 'var(--sbb-color-charcoal)' }}>
+                    Spitzenelevation
+                  </p>
+                  <p className="text-xs" style={{ color: 'var(--sbb-color-granite)' }}>
+                    {resort.maxElevation}m
+                  </p>
+                </div>
+              )}
+              {resort.verticalDrop && (
+                <div>
+                  <p className="text-xs font-semibold" style={{ color: 'var(--sbb-color-charcoal)' }}>
+                    Höhenunterschied
+                  </p>
+                  <p className="text-xs" style={{ color: 'var(--sbb-color-granite)' }}>
+                    {resort.verticalDrop}m
+                  </p>
+                </div>
+              )}
+              {resort.lifts && (
+                <div>
+                  <p className="text-xs font-semibold" style={{ color: 'var(--sbb-color-charcoal)' }}>
+                    Lifte
+                  </p>
+                  <p className="text-xs" style={{ color: 'var(--sbb-color-granite)' }}>
+                    {resort.lifts}
+                  </p>
+                </div>
+              )}
+              {resort.difficulty && (
+                <div>
+                  <p className="text-xs font-semibold" style={{ color: 'var(--sbb-color-charcoal)' }}>
+                    Schwierigkeit
+                  </p>
+                  <p className="text-xs" style={{ color: 'var(--sbb-color-granite)' }}>
+                    {resort.difficulty === 'easy' ? 'Einfach' : resort.difficulty === 'intermediate' ? 'Mittel' : 'Schwierig'}
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Ski Runs Distribution */}
+        {resort.runs && (
+          <div className="mb-4 border-t pt-3" style={{ borderColor: 'var(--sbb-color-cloud)' }}>
+            <p className="text-xs font-semibold mb-2" style={{ color: 'var(--sbb-color-charcoal)' }}>
+              Pisten ({resort.runs.total})
+            </p>
+            <div className="space-y-1">
+              {resort.runs.beginner > 0 && (
+                <div className="flex items-center gap-2">
+                  <span className="text-xs px-2 rounded" style={{ backgroundColor: '#4CAF50', color: 'white' }}>
+                    Anfänger
+                  </span>
+                  <span className="text-xs" style={{ color: 'var(--sbb-color-granite)' }}>
+                    {resort.runs.beginner}
+                  </span>
+                </div>
+              )}
+              {resort.runs.intermediate > 0 && (
+                <div className="flex items-center gap-2">
+                  <span className="text-xs px-2 rounded" style={{ backgroundColor: '#FF9800', color: 'white' }}>
+                    Mittel
+                  </span>
+                  <span className="text-xs" style={{ color: 'var(--sbb-color-granite)' }}>
+                    {resort.runs.intermediate}
+                  </span>
+                </div>
+              )}
+              {resort.runs.advanced > 0 && (
+                <div className="flex items-center gap-2">
+                  <span className="text-xs px-2 rounded" style={{ backgroundColor: '#F44336', color: 'white' }}>
+                    Fortgeschritten
+                  </span>
+                  <span className="text-xs" style={{ color: 'var(--sbb-color-granite)' }}>
+                    {resort.runs.advanced}
+                  </span>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Best For Tags */}
+        {resort.bestFor && resort.bestFor.length > 0 && (
+          <div className="mb-4">
+            <p className="text-xs font-semibold mb-2" style={{ color: 'var(--sbb-color-charcoal)' }}>
+              Geeignet für
+            </p>
+            <div className="flex flex-wrap gap-1">
+              {resort.bestFor.map((tag, i) => (
+                <span
+                  key={i}
+                  className="text-xs px-2 py-1 rounded"
+                  style={{
+                    backgroundColor: 'var(--sbb-color-sky-light)',
+                    color: 'white'
+                  }}
+                >
+                  {tag}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Amenities */}
+        {resort.amenities && resort.amenities.length > 0 && (
+          <div className="mb-4">
+            <p className="text-xs font-semibold mb-2" style={{ color: 'var(--sbb-color-charcoal)' }}>
+              Einrichtungen
+            </p>
+            <div className="flex flex-wrap gap-1">
+              {resort.amenities.slice(0, 5).map((amenity, i) => (
+                <span
+                  key={i}
+                  className="text-xs px-2 py-1 rounded"
+                  style={{
+                    backgroundColor: 'var(--sbb-color-cloud)',
+                    color: 'var(--sbb-color-charcoal)'
+                  }}
+                >
+                  {amenity}
+                </span>
+              ))}
+              {resort.amenities.length > 5 && (
+                <span
+                  className="text-xs px-2 py-1 rounded"
+                  style={{
+                    backgroundColor: 'var(--sbb-color-cloud)',
+                    color: 'var(--sbb-color-charcoal)'
+                  }}
+                >
+                  +{resort.amenities.length - 5}
+                </span>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Family Friendly Badge */}
+        {resort.familyFriendly && (
+          <div className="mb-4 p-2 rounded" style={{ backgroundColor: 'rgba(0, 150, 200, 0.1)' }}>
+            <p className="text-xs font-semibold" style={{ color: 'var(--sbb-color-sky)' }}>
+              👨‍👩‍👧‍👦 Familienfreundlich
+            </p>
+          </div>
+        )}
 
         {/* Action Links */}
         <div className="mt-auto pt-3 border-t flex gap-2" style={{ borderColor: 'var(--sbb-color-cloud)' }}>
@@ -428,7 +872,7 @@ function ResortCard({ resort }: { resort: Resort }) {
               onMouseOver={(e) => e.currentTarget.style.backgroundColor = 'var(--sbb-color-red125)'}
               onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'var(--sbb-color-red)'}
             >
-              🌐 Website
+              Website
             </a>
           )}
           <a
@@ -441,7 +885,7 @@ function ResortCard({ resort }: { resort: Resort }) {
             onMouseOver={(e) => e.currentTarget.style.backgroundColor = 'var(--sbb-color-red125)'}
             onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'var(--sbb-color-red)'}
           >
-            🗺️ Auf Karte
+            Auf Karte
           </a>
         </div>
       </div>
