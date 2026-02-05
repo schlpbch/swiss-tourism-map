@@ -13,10 +13,12 @@ import {
   type HolidayProduct,
 } from '../../api/products';
 import type { RailAwayProduct } from '../../types/railaway';
+import { useLanguageStore } from '../../store/languageStore';
 
 type ProductTab = 'railaway' | 'travelpass' | 'holiday';
 
 export default function ProductsContainer() {
+  const { language } = useLanguageStore();
   const [activeTab, setActiveTab] = useState<ProductTab>('railaway');
   const [railawayProducts, setRailawayProducts] = useState<RailAwayProduct[]>([]);
   const [travelProducts, setTravelProducts] = useState<TravelSystemProduct[]>([]);
@@ -46,24 +48,45 @@ export default function ProductsContainer() {
         setLoading(true);
         setError(null);
 
-        console.log('Initializing MCP connection...');
+        console.log('[Products] Initializing MCP connection...');
         await initializeMcp();
+        console.log('[Products] MCP connection initialized');
 
-        console.log('Loading products via MCP...');
+        console.log('[Products] Fetching products from backend...');
 
         const [railaway, travel, holiday] = await Promise.all([
-          searchRailAway({ limit: 50, language: 'de' }),
-          searchTravelSystem({ limit: 50, language: 'de' }),
-          searchHolidayProducts({ limit: 50, language: 'de' }),
+          (async () => {
+            console.log('[Products] → Calling searchRailAway (limit=50, language=' + language + ')');
+            const result = await searchRailAway({ limit: 50, language });
+            console.log('[Products] ← searchRailAway returned:', result.length, 'products');
+            return result;
+          })(),
+          (async () => {
+            console.log('[Products] → Calling searchTravelSystem (limit=50, language=' + language + ')');
+            const result = await searchTravelSystem({ limit: 50, language });
+            console.log('[Products] ← searchTravelSystem returned:', result.length, 'products');
+            return result;
+          })(),
+          (async () => {
+            console.log('[Products] → Calling searchHolidayProducts (limit=50, language=' + language + ')');
+            const result = await searchHolidayProducts({ limit: 50, language });
+            console.log('[Products] ← searchHolidayProducts returned:', result.length, 'products');
+            return result;
+          })(),
         ]);
 
-        console.log(`Loaded ${railaway.length} RailAway, ${travel.length} Travel System, ${holiday.length} Holiday products`);
+        console.log('[Products] ✓ All products loaded successfully:', {
+          railaway: railaway.length,
+          travelSystem: travel.length,
+          holiday: holiday.length,
+          total: railaway.length + travel.length + holiday.length,
+        });
 
         setRailawayProducts(railaway);
         setTravelProducts(travel);
         setHolidayProducts(holiday);
       } catch (err) {
-        console.error('Error loading products:', err);
+        console.error('[Products] ✗ Error loading products:', err);
         setError('Fehler beim Laden der Produkte vom MCP-Server.');
       } finally {
         setLoading(false);
@@ -71,7 +94,7 @@ export default function ProductsContainer() {
     }
 
     loadData();
-  }, []);
+  }, [language]);
 
   // Filter logic for RailAway
   const filteredRailaway = railawayProducts.filter((product) => {
