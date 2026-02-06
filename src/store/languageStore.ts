@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { Lang, getDefaultLang } from '../i18n';
+import { getDefaultLang } from '../i18n';
+import type { Lang } from '../i18n';
 
 interface LanguageState {
   language: Lang;

@@ -1,6 +1,5 @@
 /**
  * MapContainer component - Main Leaflet map with markers
- * Styled with SBB Lyne Design System
  */
 
 import { useEffect, useState, useMemo, useCallback } from 'react';
@@ -13,10 +12,13 @@ import { getResorts } from '../../api/resorts';
 import { initializeMcp } from '../../api/mcp-client';
 import ProminenceFilter from './ProminenceFilter';
 import { useProminenceFilter } from '../../hooks/useProminenceFilter';
-import { useHoverStyle } from '../../hooks/useHoverStyle';
 import { getMarkerColorName, countSightsByTier } from '../../utils/prominence';
 import { t } from '../../i18n';
 import { useLanguageStore } from '../../store/languageStore';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Spinner } from '@/components/ui/spinner';
 
 // Switzerland center coordinates
 const SWITZERLAND_CENTER: [number, number] = [46.8, 8.2];
@@ -89,9 +91,6 @@ export default function MapContainer() {
     prominenceRange,
   } = useProminenceFilter({ onFilterChange: handleFilterChange });
 
-  // Hover styles for buttons
-  const buttonHover = useHoverStyle('button-red');
-
   // Initial data load - load all sights to get tier counts and initial display
   useEffect(() => {
     async function loadData() {
@@ -129,19 +128,10 @@ export default function MapContainer() {
 
   if (loading) {
     return (
-      <div
-        className="w-full h-full flex items-center justify-center"
-        style={{ backgroundColor: 'var(--sbb-color-milk)' }}
-      >
+      <div className="w-full h-full flex items-center justify-center bg-[var(--background)]">
         <div className="text-center">
-          <div
-            className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-t-transparent"
-            style={{ borderColor: 'var(--sbb-color-red)', borderTopColor: 'transparent' }}
-          />
-          <p
-            className="mt-4 text-sm"
-            style={{ color: 'var(--sbb-color-granite)' }}
-          >
+          <Spinner size="lg" />
+          <p className="mt-4 text-sm text-[var(--muted-foreground)]">
             {t(language, 'loadingMessages.tourismData')}
           </p>
         </div>
@@ -151,45 +141,17 @@ export default function MapContainer() {
 
   if (error) {
     return (
-      <div
-        className="w-full h-full flex items-center justify-center"
-        style={{ backgroundColor: 'var(--sbb-color-milk)' }}
-      >
-        <div
-          className="text-center max-w-md p-6 rounded-lg shadow-lg"
-          style={{
-            backgroundColor: 'var(--sbb-color-white)',
-            borderRadius: 'var(--sbb-border-radius-4x)'
-          }}
-        >
-          <div className="text-5xl mb-4" style={{ color: 'var(--sbb-color-red)' }}>
-            ⚠
-          </div>
-          <h3
-            className="text-lg font-semibold mb-2"
-            style={{ color: 'var(--sbb-color-charcoal)' }}
-          >
+      <div className="w-full h-full flex items-center justify-center bg-[var(--background)]">
+        <Card className="text-center max-w-md p-6">
+          <div className="text-5xl mb-4 text-[var(--destructive)]">⚠</div>
+          <h3 className="text-lg font-semibold mb-2 text-[var(--foreground)]">
             {t(language, 'error')}
           </h3>
-          <p
-            className="mb-4 text-sm"
-            style={{ color: 'var(--sbb-color-granite)' }}
-          >
-            {error}
-          </p>
-          <button
-            onClick={() => window.location.reload()}
-            className="px-4 py-2 rounded font-medium transition-colors"
-            style={{
-              backgroundColor: 'var(--sbb-color-red)',
-              color: 'var(--sbb-color-white)',
-              borderRadius: 'var(--sbb-border-radius-4x)'
-            }}
-            {...buttonHover}
-          >
+          <p className="mb-4 text-sm text-[var(--muted-foreground)]">{error}</p>
+          <Button onClick={() => window.location.reload()}>
             {t(language, 'common.reload')}
-          </button>
-        </div>
+          </Button>
+        </Card>
       </div>
     );
   }
@@ -215,95 +177,54 @@ export default function MapContainer() {
           >
             <Popup>
               <div className="p-3 min-w-70">
-                <h3
-                  className="font-bold text-base mb-1"
-                  style={{ color: 'var(--sbb-color-red)' }}
-                >
+                <h3 className="font-bold text-base mb-1 text-[var(--primary)]">
                   {sight.title}
                 </h3>
 
                 {sight.region && (
-                  <p
-                    className="text-xs mb-2"
-                    style={{ color: 'var(--sbb-color-granite)' }}
-                  >
+                  <p className="text-xs mb-2 text-[var(--muted-foreground)]">
                     📍 {sight.region}
                   </p>
                 )}
 
-                <p
-                  className="text-xs mb-3"
-                  style={{ color: 'var(--sbb-color-granite)' }}
-                >
+                <p className="text-xs mb-3 text-[var(--muted-foreground)]">
                   {sight.category.join(', ')}
                 </p>
 
-                <p
-                  className="text-sm leading-relaxed mb-3"
-                  style={{ color: 'var(--sbb-color-iron)' }}
-                >
+                <p className="text-sm leading-relaxed mb-3 text-[var(--foreground)]">
                   {sight.description}
                 </p>
 
                 {sight.prominence && (
                   <div className="mb-3">
-                    <span
-                      className="text-xs font-semibold px-2 py-1 rounded"
-                      style={{
-                        backgroundColor: 'var(--sbb-color-sky-light)',
-                        color: 'white'
-                      }}
-                    >
+                    <Badge variant="secondary">
                       ⭐ {sight.prominence.tier} - {sight.prominence.score}/100
-                    </span>
+                    </Badge>
                   </div>
                 )}
 
                 {sight.tags && sight.tags.length > 0 && (
                   <div className="mt-2 flex flex-wrap gap-1">
                     {sight.tags.slice(0, 4).map((tag, i) => (
-                      <span
-                        key={i}
-                        className="text-xs px-2 py-0.5 rounded"
-                        style={{
-                          backgroundColor: 'var(--sbb-color-cloud)',
-                          color: 'var(--sbb-color-charcoal)'
-                        }}
-                      >
-                        {tag}
-                      </span>
+                      <Badge key={i} variant="outline">{tag}</Badge>
                     ))}
                   </div>
                 )}
 
                 {/* Action Links */}
-                <div className="mt-4 pt-3 border-t flex gap-2" style={{ borderColor: 'var(--sbb-color-cloud)' }}>
+                <div className="mt-4 pt-3 border-t border-[var(--border)] flex gap-2">
                   {(sight.website || sight.url) && (
-                    <a
-                      href={sight.website || sight.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex-1 px-2 py-1 rounded text-xs font-medium text-center transition-colors"
-                      style={{
-                        backgroundColor: 'var(--sbb-color-red)',
-                        color: 'white',
-                      }}
-                      {...buttonHover}
-                    >
-                      {t(language, 'common.website')}
-                    </a>
+                    <Button asChild size="sm" className="flex-1">
+                      <a href={sight.website || sight.url} target="_blank" rel="noopener noreferrer">
+                        {t(language, 'common.website')}
+                      </a>
+                    </Button>
                   )}
-                  <a
-                    href="/products"
-                    className="flex-1 px-2 py-1 rounded text-xs font-medium text-center transition-colors"
-                    style={{
-                      backgroundColor: 'var(--sbb-color-red)',
-                      color: 'white',
-                    }}
-                    {...buttonHover}
-                  >
-                    {t(language, 'nav.products')}
-                  </a>
+                  <Button asChild size="sm" className="flex-1">
+                    <a href="/products">
+                      {t(language, 'nav.products')}
+                    </a>
+                  </Button>
                 </div>
               </div>
             </Popup>
@@ -319,27 +240,17 @@ export default function MapContainer() {
           >
             <Popup>
               <div className="p-3 min-w-70">
-                <h3
-                  className="font-bold text-base mb-1"
-                  style={{ color: 'var(--sbb-color-red)' }}
-                >
+                <h3 className="font-bold text-base mb-1 text-[var(--primary)]">
                   {resort.name}
                 </h3>
 
-                <div className="mb-2 text-xs space-y-1">
-                  <p style={{ color: 'var(--sbb-color-granite)' }}>
-                    📍 {resort.region}
-                  </p>
-                  <p style={{ color: 'var(--sbb-color-granite)' }}>
-                    ⛰️ {t(language, 'map.elevation', { elevation: resort.elevation })}
-                  </p>
+                <div className="mb-2 text-xs space-y-1 text-[var(--muted-foreground)]">
+                  <p>📍 {resort.region}</p>
+                  <p>⛰️ {t(language, 'map.elevation', { elevation: resort.elevation })}</p>
                 </div>
 
-                <div className="mb-3 border-t pt-2" style={{ borderColor: 'var(--sbb-color-cloud)' }}>
-                  <p
-                    className="text-xs font-semibold mb-1"
-                    style={{ color: 'var(--sbb-color-charcoal)' }}
-                  >
+                <div className="mb-3 border-t pt-2 border-[var(--border)]">
+                  <p className="text-xs font-semibold mb-1 text-[var(--foreground)]">
                     {t(language, 'map.seasons')}:
                   </p>
                   <div className="flex flex-wrap gap-1">
@@ -351,56 +262,32 @@ export default function MapContainer() {
                         'autumn': '🍂'
                       };
                       return (
-                        <span
-                          key={season}
-                          className="text-xs px-2 py-0.5 rounded font-medium"
-                          style={{
-                            backgroundColor: 'var(--sbb-color-orange-light)',
-                            color: 'white'
-                          }}
-                        >
+                        <Badge key={season} variant="resort">
                           {seasonEmojis[season] || '📅'} {t(language, `seasons.${season}`)}
-                        </span>
+                        </Badge>
                       );
                     })}
                   </div>
                 </div>
 
-                <p
-                  className="text-xs"
-                  style={{ color: 'var(--sbb-color-granite)' }}
-                >
+                <p className="text-xs text-[var(--muted-foreground)]">
                   🏔️ {t(language, 'resorts.alpineResort')}
                 </p>
 
                 {/* Action Links */}
-                <div className="mt-4 pt-2 border-t flex gap-2" style={{ borderColor: 'var(--sbb-color-cloud)' }}>
+                <div className="mt-4 pt-2 border-t border-[var(--border)] flex gap-2">
                   {(resort.website || resort.url) && (
-                    <a
-                      href={resort.website || resort.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex-1 px-2 py-1 rounded text-xs font-medium text-center transition-colors"
-                      style={{
-                        backgroundColor: 'var(--sbb-color-red)',
-                        color: 'white',
-                      }}
-                      {...buttonHover}
-                    >
-                      {t(language, 'common.website')}
-                    </a>
+                    <Button asChild size="sm" className="flex-1">
+                      <a href={resort.website || resort.url} target="_blank" rel="noopener noreferrer">
+                        {t(language, 'common.website')}
+                      </a>
+                    </Button>
                   )}
-                  <a
-                    href="/products"
-                    className="flex-1 px-2 py-1 rounded text-xs font-medium text-center transition-colors"
-                    style={{
-                      backgroundColor: 'var(--sbb-color-red)',
-                      color: 'white',
-                    }}
-                    {...buttonHover}
-                  >
-                    {t(language, 'nav.products')}
-                  </a>
+                  <Button asChild size="sm" className="flex-1">
+                    <a href="/products">
+                      {t(language, 'nav.products')}
+                    </a>
+                  </Button>
                 </div>
               </div>
             </Popup>
@@ -421,54 +308,31 @@ export default function MapContainer() {
 
       {/* Filter loading indicator */}
       {filterLoading && (
-        <div
-          className="absolute top-20 left-4 px-3 py-2 shadow-lg z-1000 flex items-center gap-2"
-          style={{
-            backgroundColor: 'var(--sbb-color-white)',
-            borderRadius: 'var(--sbb-border-radius-4x)',
-            border: '1px solid var(--sbb-color-cloud)'
-          }}
-        >
-          <div
-            className="inline-block animate-spin rounded-full h-4 w-4 border-2 border-t-transparent"
-            style={{ borderColor: 'var(--sbb-color-red)', borderTopColor: 'transparent' }}
-          />
-          <span className="text-xs" style={{ color: 'var(--sbb-color-granite)' }}>
+        <Card className="absolute top-20 left-4 px-3 py-2 shadow-lg z-[1000] flex items-center gap-2">
+          <Spinner size="sm" />
+          <span className="text-xs text-[var(--muted-foreground)]">
             {t(language, 'loadingMessages.filteredData')}
           </span>
-        </div>
+        </Card>
       )}
 
-      {/* Stats overlay with SBB styling */}
-      <div
-        className="absolute top-4 right-4 px-4 py-3 shadow-lg z-1000"
-        style={{
-          backgroundColor: 'var(--sbb-color-white)',
-          borderRadius: 'var(--sbb-border-radius-4x)',
-          border: '1px solid var(--sbb-color-cloud)'
-        }}
-      >
+      {/* Stats overlay */}
+      <Card className="absolute top-4 right-4 px-4 py-3 shadow-lg z-[1000]">
         <div className="text-sm space-y-2">
           <div className="flex items-center gap-2">
-            <span
-              className="w-3 h-3 rounded-full"
-              style={{ backgroundColor: 'var(--sbb-color-sky-light)' }}
-            />
-            <span style={{ color: 'var(--sbb-color-charcoal)' }}>
+            <span className="w-3 h-3 rounded-full bg-sky-400" />
+            <span className="text-[var(--foreground)]">
               {t(language, 'map.sightsCount', { displayed: displayedSights.length, total: allSights.length })}
             </span>
           </div>
           <div className="flex items-center gap-2">
-            <span
-              className="w-3 h-3 rounded-full"
-              style={{ backgroundColor: 'var(--sbb-color-orange-light)' }}
-            />
-            <span style={{ color: 'var(--sbb-color-charcoal)' }}>
+            <span className="w-3 h-3 rounded-full bg-orange-400" />
+            <span className="text-[var(--foreground)]">
               {t(language, 'map.resortsCount', { count: resorts.length })}
             </span>
           </div>
         </div>
-      </div>
+      </Card>
     </div>
   );
 }

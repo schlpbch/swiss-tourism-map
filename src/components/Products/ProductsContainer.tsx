@@ -14,8 +14,21 @@ import {
 } from '../../api/products';
 import type { RailAwayProduct } from '../../types/railaway';
 import { useLanguageStore } from '../../store/languageStore';
-import { useHoverStyle } from '../../hooks/useHoverStyle';
 import { t } from '../../i18n';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Spinner } from '@/components/ui/spinner';
+import { Slider } from '@/components/ui/slider';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { cn } from '@/lib/utils';
 
 type ProductTab = 'railaway' | 'travelpass' | 'holiday';
 
@@ -120,16 +133,10 @@ export default function ProductsContainer() {
 
   if (loading) {
     return (
-      <div
-        className="w-full h-full flex items-center justify-center"
-        style={{ backgroundColor: 'var(--sbb-color-milk)' }}
-      >
+      <div className="w-full h-full flex items-center justify-center bg-[var(--background)]">
         <div className="text-center">
-          <div
-            className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-t-transparent"
-            style={{ borderColor: 'var(--sbb-color-red)', borderTopColor: 'transparent' }}
-          />
-          <p className="mt-4 text-sm" style={{ color: 'var(--sbb-color-granite)' }}>
+          <Spinner size="lg" />
+          <p className="mt-4 text-sm text-[var(--muted-foreground)]">
             {t(language, 'loadingMessages.products')}
           </p>
         </div>
@@ -139,384 +146,270 @@ export default function ProductsContainer() {
 
   if (error) {
     return (
-      <div
-        className="w-full h-full flex items-center justify-center"
-        style={{ backgroundColor: 'var(--sbb-color-milk)' }}
-      >
-        <div
-          className="text-center max-w-md p-6 rounded-lg shadow-lg"
-          style={{
-            backgroundColor: 'var(--sbb-color-white)',
-            borderRadius: 'var(--sbb-border-radius-4x)',
-          }}
-        >
-          <div className="text-5xl mb-4" style={{ color: 'var(--sbb-color-red)' }}>
-            ⚠
-          </div>
-          <p className="mb-4 text-sm" style={{ color: 'var(--sbb-color-granite)' }}>
-            {error}
-          </p>
-          <button
-            onClick={() => window.location.reload()}
-            className="px-4 py-2 rounded font-medium"
-            style={{
-              backgroundColor: 'var(--sbb-color-red)',
-              color: 'var(--sbb-color-white)',
-            }}
-          >
+      <div className="w-full h-full flex items-center justify-center bg-[var(--background)]">
+        <Card className="text-center max-w-md p-6">
+          <div className="text-5xl mb-4 text-[var(--destructive)]">⚠</div>
+          <p className="mb-4 text-sm text-[var(--muted-foreground)]">{error}</p>
+          <Button onClick={() => window.location.reload()}>
             {t(language, 'common.reload')}
-          </button>
-        </div>
+          </Button>
+        </Card>
       </div>
     );
   }
 
   return (
-    <div className="h-full flex flex-col" style={{ backgroundColor: 'var(--sbb-color-milk)' }}>
+    <div className="h-full flex flex-col bg-[var(--background)]">
       {/* Tabs */}
-      <div
-        className="flex border-b px-4"
-        style={{ backgroundColor: 'var(--sbb-color-white)', borderColor: 'var(--sbb-color-cloud)' }}
-      >
-        {tabs.map((tab) => (
-          <button
-            key={tab.id}
-            onClick={() => setActiveTab(tab.id)}
-            className="px-4 py-3 font-medium text-sm transition-colors relative"
-            style={{
-              color: activeTab === tab.id ? 'var(--sbb-color-red)' : 'var(--sbb-color-granite)',
-            }}
-          >
-            {tab.label}
-            <span
-              className="ml-2 px-2 py-0.5 rounded-full text-xs"
-              style={{
-                backgroundColor: activeTab === tab.id ? 'var(--sbb-color-red)' : 'var(--sbb-color-cloud)',
-                color: activeTab === tab.id ? 'var(--sbb-color-white)' : 'var(--sbb-color-granite)',
-              }}
-            >
-              {tab.count}
-            </span>
-            {activeTab === tab.id && (
-              <div
-                className="absolute bottom-0 left-0 right-0 h-0.5"
-                style={{ backgroundColor: 'var(--sbb-color-red)' }}
-              />
-            )}
-          </button>
-        ))}
-      </div>
-
-      {/* Filters Sidebar & Content */}
-      <div className="flex-1 overflow-auto flex">
-        {/* Filters */}
-        <div
-          className="w-64 border-r p-4 overflow-y-auto"
-          style={{ backgroundColor: 'var(--sbb-color-white)', borderColor: 'var(--sbb-color-cloud)' }}
-        >
-          <h3 className="font-bold text-sm mb-4" style={{ color: 'var(--sbb-color-charcoal)' }}>
-            {t(language, 'common.filter')}
-          </h3>
-
-          {/* RailAway Filters */}
-          {activeTab === 'railaway' && (
-            <div className="space-y-4">
-              {/* Category Filter */}
-              <div>
-                <label className="block text-sm font-medium mb-2" style={{ color: 'var(--sbb-color-charcoal)' }}>
-                  {t(language, 'common.category')}
-                </label>
-                <select
-                  value={railawayCategory}
-                  onChange={(e) => setRailawayCategory(e.target.value)}
-                  className="w-full px-3 py-2 rounded border text-sm"
-                  style={{
-                    backgroundColor: 'var(--sbb-color-milk)',
-                    borderColor: 'var(--sbb-color-cloud)',
-                    color: 'var(--sbb-color-charcoal)',
-                  }}
-                >
-                  <option value="all">{t(language, 'common.allCategories')}</option>
-                  {railawayCategories.map((cat) => (
-                    <option key={cat} value={cat}>
-                      {cat}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Price Filter */}
-              <div>
-                <label className="block text-sm font-medium mb-2" style={{ color: 'var(--sbb-color-charcoal)' }}>
-                  {t(language, 'products.maxPrice')}: CHF {railawayMaxPrice}
-                </label>
-                <input
-                  type="range"
-                  min="0"
-                  max="10000"
-                  step="100"
-                  value={railawayMaxPrice}
-                  onChange={(e) => setRailawayMaxPrice(Number(e.target.value))}
-                  className="w-full"
-                />
-              </div>
-
-              <button
-                onClick={() => {
-                  setRailawayCategory('all');
-                  setRailawayMaxPrice(10000);
-                }}
-                className="w-full px-3 py-2 rounded text-sm font-medium transition-colors"
-                style={{
-                  backgroundColor: 'var(--sbb-color-milk)',
-                  color: 'var(--sbb-color-charcoal)',
-                  border: '1px solid var(--sbb-color-cloud)',
-                }}
-                onMouseOver={(e) =>
-                  (e.currentTarget.style.backgroundColor = 'var(--sbb-color-cloud)')
-                }
-                onMouseOut={(e) =>
-                  (e.currentTarget.style.backgroundColor = 'var(--sbb-color-milk)')
-                }
+      <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as ProductTab)} className="flex flex-col h-full">
+        <div className="px-4 bg-[var(--card)] border-b border-[var(--border)]">
+          <TabsList className="bg-transparent h-auto p-0 gap-0">
+            {tabs.map((tab) => (
+              <TabsTrigger
+                key={tab.id}
+                value={tab.id}
+                className="px-4 py-3 font-medium text-sm transition-colors relative rounded-none data-[state=active]:bg-transparent data-[state=active]:shadow-none border-b-2 border-transparent data-[state=active]:border-[var(--primary)] data-[state=active]:text-[var(--primary)]"
               >
-                {t(language, 'common.resetFilter')}
-              </button>
-            </div>
-          )}
-
-          {/* Travel System Filters */}
-          {activeTab === 'travelpass' && (
-            <div className="space-y-4">
-              {/* Category Filter */}
-              <div>
-                <label className="block text-sm font-medium mb-2" style={{ color: 'var(--sbb-color-charcoal)' }}>
-                  {t(language, 'common.category')}
-                </label>
-                <select
-                  value={travelCategory}
-                  onChange={(e) => setTravelCategory(e.target.value)}
-                  className="w-full px-3 py-2 rounded border text-sm"
-                  style={{
-                    backgroundColor: 'var(--sbb-color-milk)',
-                    borderColor: 'var(--sbb-color-cloud)',
-                    color: 'var(--sbb-color-charcoal)',
-                  }}
+                {tab.label}
+                <Badge
+                  variant={activeTab === tab.id ? 'default' : 'secondary'}
+                  className="ml-2"
                 >
-                  <option value="all">{t(language, 'common.allCategories')}</option>
-                  {travelCategories.map((cat) => (
-                    <option key={cat} value={cat}>
-                      {cat === 'travel-pass'
-                        ? t(language, 'products.travelPass')
-                        : cat === 'travel-pass-flex'
-                          ? t(language, 'products.flexPass')
-                          : cat === 'discount-card'
-                            ? t(language, 'products.discountCard')
-                            : cat === 'regional-pass'
-                              ? t(language, 'products.regionalPass')
-                              : t(language, 'products.familyCard')}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Duration Filter */}
-              <div>
-                <label className="block text-sm font-medium mb-2" style={{ color: 'var(--sbb-color-charcoal)' }}>
-                  {t(language, 'products.duration')}
-                </label>
-                <select
-                  value={travelDuration}
-                  onChange={(e) => setTravelDuration(e.target.value)}
-                  className="w-full px-3 py-2 rounded border text-sm"
-                  style={{
-                    backgroundColor: 'var(--sbb-color-milk)',
-                    borderColor: 'var(--sbb-color-cloud)',
-                    color: 'var(--sbb-color-charcoal)',
-                  }}
-                >
-                  <option value="all">{t(language, 'products.allDays')}</option>
-                  <option value="3">{t(language, 'products.threeDays')}</option>
-                  <option value="4">{t(language, 'products.fourDays')}</option>
-                  <option value="5plus">{t(language, 'products.fivePlusDays')}</option>
-                </select>
-              </div>
-
-              {/* Price Filter */}
-              <div>
-                <label className="block text-sm font-medium mb-2" style={{ color: 'var(--sbb-color-charcoal)' }}>
-                  {t(language, 'products.maxPrice')}: CHF {travelMaxPrice}
-                </label>
-                <input
-                  type="range"
-                  min="0"
-                  max="5000"
-                  step="50"
-                  value={travelMaxPrice}
-                  onChange={(e) => setTravelMaxPrice(Number(e.target.value))}
-                  className="w-full"
-                />
-              </div>
-
-              <button
-                onClick={() => {
-                  setTravelCategory('all');
-                  setTravelDuration('all');
-                  setTravelMaxPrice(5000);
-                }}
-                className="w-full px-3 py-2 rounded text-sm font-medium transition-colors"
-                style={{
-                  backgroundColor: 'var(--sbb-color-milk)',
-                  color: 'var(--sbb-color-charcoal)',
-                  border: '1px solid var(--sbb-color-cloud)',
-                }}
-                onMouseOver={(e) =>
-                  (e.currentTarget.style.backgroundColor = 'var(--sbb-color-cloud)')
-                }
-                onMouseOut={(e) =>
-                  (e.currentTarget.style.backgroundColor = 'var(--sbb-color-milk)')
-                }
-              >
-                {t(language, 'common.resetFilter')}
-              </button>
-            </div>
-          )}
-
-          {/* Holiday Filters */}
-          {activeTab === 'holiday' && (
-            <div className="space-y-4">
-              {/* Category Filter */}
-              <div>
-                <label className="block text-sm font-medium mb-2" style={{ color: 'var(--sbb-color-charcoal)' }}>
-                  {t(language, 'common.category')}
-                </label>
-                <select
-                  value={holidayCategory}
-                  onChange={(e) => setHolidayCategory(e.target.value)}
-                  className="w-full px-3 py-2 rounded border text-sm"
-                  style={{
-                    backgroundColor: 'var(--sbb-color-milk)',
-                    borderColor: 'var(--sbb-color-cloud)',
-                    color: 'var(--sbb-color-charcoal)',
-                  }}
-                >
-                  <option value="all">{t(language, 'common.allCategories')}</option>
-                  {holidayCategories.map((cat) => (
-                    <option key={cat} value={cat}>
-                      {cat.replace(/-/g, ' ')}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Region Filter */}
-              <div>
-                <label className="block text-sm font-medium mb-2" style={{ color: 'var(--sbb-color-charcoal)' }}>
-                  {t(language, 'common.region')}
-                </label>
-                <select
-                  value={holidayRegion}
-                  onChange={(e) => setHolidayRegion(e.target.value)}
-                  className="w-full px-3 py-2 rounded border text-sm"
-                  style={{
-                    backgroundColor: 'var(--sbb-color-milk)',
-                    borderColor: 'var(--sbb-color-cloud)',
-                    color: 'var(--sbb-color-charcoal)',
-                  }}
-                >
-                  <option value="all">{t(language, 'common.allRegions')}</option>
-                  {holidayRegions.map((region) => (
-                    <option key={region} value={region}>
-                      {region}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Difficulty Filter */}
-              <div>
-                <label className="block text-sm font-medium mb-2" style={{ color: 'var(--sbb-color-charcoal)' }}>
-                  {t(language, 'resorts.difficulty')}
-                </label>
-                <select
-                  value={holidayDifficulty}
-                  onChange={(e) => setHolidayDifficulty(e.target.value)}
-                  className="w-full px-3 py-2 rounded border text-sm"
-                  style={{
-                    backgroundColor: 'var(--sbb-color-milk)',
-                    borderColor: 'var(--sbb-color-cloud)',
-                    color: 'var(--sbb-color-charcoal)',
-                  }}
-                >
-                  <option value="all">{t(language, 'products.allLevels')}</option>
-                  <option value="easy">{t(language, 'difficulty.easy')}</option>
-                  <option value="moderate">{t(language, 'difficulty.moderate')}</option>
-                  <option value="challenging">{t(language, 'difficulty.challenging')}</option>
-                </select>
-              </div>
-
-              {/* Duration Filter */}
-              <div>
-                <label className="block text-sm font-medium mb-2" style={{ color: 'var(--sbb-color-charcoal)' }}>
-                  {t(language, 'products.maxDuration')}: {holidayMaxDuration === 0 ? t(language, 'products.unlimited') : `${holidayMaxDuration} ${t(language, 'common.days')}`}
-                </label>
-                <input
-                  type="range"
-                  min="0"
-                  max="30"
-                  step="1"
-                  value={holidayMaxDuration}
-                  onChange={(e) => setHolidayMaxDuration(Number(e.target.value))}
-                  className="w-full"
-                />
-              </div>
-
-              {/* Price Filter */}
-              <div>
-                <label className="block text-sm font-medium mb-2" style={{ color: 'var(--sbb-color-charcoal)' }}>
-                  {t(language, 'products.maxPrice')}: CHF {holidayMaxPrice}
-                </label>
-                <input
-                  type="range"
-                  min="0"
-                  max="10000"
-                  step="100"
-                  value={holidayMaxPrice}
-                  onChange={(e) => setHolidayMaxPrice(Number(e.target.value))}
-                  className="w-full"
-                />
-              </div>
-
-              <button
-                onClick={() => {
-                  setHolidayCategory('all');
-                  setHolidayRegion('all');
-                  setHolidayDifficulty('all');
-                  setHolidayMaxDuration(30);
-                  setHolidayMaxPrice(10000);
-                }}
-                className="w-full px-3 py-2 rounded text-sm font-medium transition-colors"
-                style={{
-                  backgroundColor: 'var(--sbb-color-milk)',
-                  color: 'var(--sbb-color-charcoal)',
-                  border: '1px solid var(--sbb-color-cloud)',
-                }}
-                onMouseOver={(e) =>
-                  (e.currentTarget.style.backgroundColor = 'var(--sbb-color-cloud)')
-                }
-                onMouseOut={(e) =>
-                  (e.currentTarget.style.backgroundColor = 'var(--sbb-color-milk)')
-                }
-              >
-                {t(language, 'common.resetFilter')}
-              </button>
-            </div>
-          )}
+                  {tab.count}
+                </Badge>
+              </TabsTrigger>
+            ))}
+          </TabsList>
         </div>
 
-        {/* Products Grid */}
-        <div className="flex-1 p-4 overflow-auto">
-          {activeTab === 'railaway' && (
-            <div>
+        {/* Filters Sidebar & Content */}
+        <div className="flex-1 overflow-auto flex">
+          {/* Filters */}
+          <div className="w-64 border-r p-4 overflow-y-auto bg-[var(--card)] border-[var(--border)]">
+            <h3 className="font-bold text-sm mb-4 text-[var(--foreground)]">
+              {t(language, 'common.filter')}
+            </h3>
+
+            {/* RailAway Filters */}
+            {activeTab === 'railaway' && (
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium mb-2 text-[var(--foreground)]">
+                    {t(language, 'common.category')}
+                  </label>
+                  <Select value={railawayCategory} onValueChange={setRailawayCategory}>
+                    <SelectTrigger className="w-full">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">{t(language, 'common.allCategories')}</SelectItem>
+                      {railawayCategories.map((cat) => (
+                        <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium mb-2 text-[var(--foreground)]">
+                    {t(language, 'products.maxPrice')}: CHF {railawayMaxPrice}
+                  </label>
+                  <Slider
+                    value={[railawayMaxPrice]}
+                    min={0}
+                    max={10000}
+                    step={100}
+                    onValueChange={([val]) => setRailawayMaxPrice(val)}
+                  />
+                </div>
+
+                <Button
+                  variant="outline"
+                  className="w-full"
+                  onClick={() => {
+                    setRailawayCategory('all');
+                    setRailawayMaxPrice(10000);
+                  }}
+                >
+                  {t(language, 'common.resetFilter')}
+                </Button>
+              </div>
+            )}
+
+            {/* Travel System Filters */}
+            {activeTab === 'travelpass' && (
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium mb-2 text-[var(--foreground)]">
+                    {t(language, 'common.category')}
+                  </label>
+                  <Select value={travelCategory} onValueChange={setTravelCategory}>
+                    <SelectTrigger className="w-full">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">{t(language, 'common.allCategories')}</SelectItem>
+                      {travelCategories.map((cat) => (
+                        <SelectItem key={cat} value={cat}>
+                          {cat === 'travel-pass'
+                            ? t(language, 'products.travelPass')
+                            : cat === 'travel-pass-flex'
+                              ? t(language, 'products.flexPass')
+                              : cat === 'discount-card'
+                                ? t(language, 'products.discountCard')
+                                : cat === 'regional-pass'
+                                  ? t(language, 'products.regionalPass')
+                                  : t(language, 'products.familyCard')}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium mb-2 text-[var(--foreground)]">
+                    {t(language, 'products.duration')}
+                  </label>
+                  <Select value={travelDuration} onValueChange={setTravelDuration}>
+                    <SelectTrigger className="w-full">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">{t(language, 'products.allDays')}</SelectItem>
+                      <SelectItem value="3">{t(language, 'products.threeDays')}</SelectItem>
+                      <SelectItem value="4">{t(language, 'products.fourDays')}</SelectItem>
+                      <SelectItem value="5plus">{t(language, 'products.fivePlusDays')}</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium mb-2 text-[var(--foreground)]">
+                    {t(language, 'products.maxPrice')}: CHF {travelMaxPrice}
+                  </label>
+                  <Slider
+                    value={[travelMaxPrice]}
+                    min={0}
+                    max={5000}
+                    step={50}
+                    onValueChange={([val]) => setTravelMaxPrice(val)}
+                  />
+                </div>
+
+                <Button
+                  variant="outline"
+                  className="w-full"
+                  onClick={() => {
+                    setTravelCategory('all');
+                    setTravelDuration('all');
+                    setTravelMaxPrice(5000);
+                  }}
+                >
+                  {t(language, 'common.resetFilter')}
+                </Button>
+              </div>
+            )}
+
+            {/* Holiday Filters */}
+            {activeTab === 'holiday' && (
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium mb-2 text-[var(--foreground)]">
+                    {t(language, 'common.category')}
+                  </label>
+                  <Select value={holidayCategory} onValueChange={setHolidayCategory}>
+                    <SelectTrigger className="w-full">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">{t(language, 'common.allCategories')}</SelectItem>
+                      {holidayCategories.map((cat) => (
+                        <SelectItem key={cat} value={cat}>{cat.replace(/-/g, ' ')}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium mb-2 text-[var(--foreground)]">
+                    {t(language, 'common.region')}
+                  </label>
+                  <Select value={holidayRegion} onValueChange={setHolidayRegion}>
+                    <SelectTrigger className="w-full">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">{t(language, 'common.allRegions')}</SelectItem>
+                      {holidayRegions.map((region) => (
+                        <SelectItem key={region} value={region}>{region}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium mb-2 text-[var(--foreground)]">
+                    {t(language, 'resorts.difficulty')}
+                  </label>
+                  <Select value={holidayDifficulty} onValueChange={setHolidayDifficulty}>
+                    <SelectTrigger className="w-full">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">{t(language, 'products.allLevels')}</SelectItem>
+                      <SelectItem value="easy">{t(language, 'difficulty.easy')}</SelectItem>
+                      <SelectItem value="moderate">{t(language, 'difficulty.moderate')}</SelectItem>
+                      <SelectItem value="challenging">{t(language, 'difficulty.challenging')}</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium mb-2 text-[var(--foreground)]">
+                    {t(language, 'products.maxDuration')}: {holidayMaxDuration === 0 ? t(language, 'products.unlimited') : `${holidayMaxDuration} ${t(language, 'common.days')}`}
+                  </label>
+                  <Slider
+                    value={[holidayMaxDuration]}
+                    min={0}
+                    max={30}
+                    step={1}
+                    onValueChange={([val]) => setHolidayMaxDuration(val)}
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium mb-2 text-[var(--foreground)]">
+                    {t(language, 'products.maxPrice')}: CHF {holidayMaxPrice}
+                  </label>
+                  <Slider
+                    value={[holidayMaxPrice]}
+                    min={0}
+                    max={10000}
+                    step={100}
+                    onValueChange={([val]) => setHolidayMaxPrice(val)}
+                  />
+                </div>
+
+                <Button
+                  variant="outline"
+                  className="w-full"
+                  onClick={() => {
+                    setHolidayCategory('all');
+                    setHolidayRegion('all');
+                    setHolidayDifficulty('all');
+                    setHolidayMaxDuration(30);
+                    setHolidayMaxPrice(10000);
+                  }}
+                >
+                  {t(language, 'common.resetFilter')}
+                </Button>
+              </div>
+            )}
+          </div>
+
+          {/* Products Grid */}
+          <div className="flex-1 p-4 overflow-auto">
+            <TabsContent value="railaway" className="mt-0">
               {filteredRailaway.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {filteredRailaway.map((product, index) => (
@@ -525,16 +418,14 @@ export default function ProductsContainer() {
                 </div>
               ) : (
                 <div className="flex items-center justify-center h-64">
-                  <p style={{ color: 'var(--sbb-color-granite)' }}>
+                  <p className="text-[var(--muted-foreground)]">
                     {t(language, 'products.noProductsFound')}
                   </p>
                 </div>
               )}
-            </div>
-          )}
+            </TabsContent>
 
-          {activeTab === 'travelpass' && (
-            <div>
+            <TabsContent value="travelpass" className="mt-0">
               {filteredTravel.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {filteredTravel.map((product) => (
@@ -543,16 +434,14 @@ export default function ProductsContainer() {
                 </div>
               ) : (
                 <div className="flex items-center justify-center h-64">
-                  <p style={{ color: 'var(--sbb-color-granite)' }}>
+                  <p className="text-[var(--muted-foreground)]">
                     {t(language, 'products.noProductsFound')}
                   </p>
                 </div>
               )}
-            </div>
-          )}
+            </TabsContent>
 
-          {activeTab === 'holiday' && (
-            <div>
+            <TabsContent value="holiday" className="mt-0">
               {filteredHoliday.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {filteredHoliday.map((product) => (
@@ -561,15 +450,15 @@ export default function ProductsContainer() {
                 </div>
               ) : (
                 <div className="flex items-center justify-center h-64">
-                  <p style={{ color: 'var(--sbb-color-granite)' }}>
+                  <p className="text-[var(--muted-foreground)]">
                     {t(language, 'products.noProductsFound')}
                   </p>
                 </div>
               )}
-            </div>
-          )}
+            </TabsContent>
+          </div>
         </div>
-      </div>
+      </Tabs>
     </div>
   );
 }
@@ -577,7 +466,6 @@ export default function ProductsContainer() {
 // RailAway Product Card
 function RailAwayCard({ product }: { product: RailAwayProduct }) {
   const { language } = useLanguageStore();
-  const cardHover = useHoverStyle('card');
   const categoryColors: Record<string, string> = {
     "Snow'n'Rail": '#94A3B8',
     "Hike'n'Rail": '#86AFBF',
@@ -587,7 +475,7 @@ function RailAwayCard({ product }: { product: RailAwayProduct }) {
     "Wellness'n'Rail": '#B89BAD',
   };
 
-  const bgColor = categoryColors[product.category || ''] || 'var(--sbb-color-granite)';
+  const bgColor = categoryColors[product.category || ''] || 'var(--muted-foreground)';
 
   const handleClick = () => {
     if (product.bookingUrl) {
@@ -596,35 +484,24 @@ function RailAwayCard({ product }: { product: RailAwayProduct }) {
   };
 
   return (
-    <button
+    <Card
       onClick={handleClick}
-      className="rounded-lg shadow-sm overflow-hidden flex flex-col text-left transition-all cursor-pointer"
-      style={{
-        backgroundColor: 'var(--sbb-color-white)',
-        border: '1px solid var(--sbb-color-cloud)',
-      }}
-      {...cardHover}
+      className="overflow-hidden flex flex-col text-left cursor-pointer hover:shadow-md transition-all"
     >
       {/* Category Header */}
       <div
-        className="px-4 py-3 text-xs font-medium"
-        style={{ backgroundColor: bgColor, color: 'white' }}
+        className="px-4 py-3 text-xs font-medium text-white"
+        style={{ backgroundColor: bgColor }}
       >
         {product.category || 'RailAway'}
       </div>
 
       {/* Content */}
-      <div className="p-4 flex-1 flex flex-col">
-        <h3
-          className="font-bold text-base mb-2 line-clamp-2"
-          style={{ color: 'var(--sbb-color-charcoal)' }}
-        >
+      <CardContent className="p-4 flex-1 flex flex-col">
+        <h3 className="font-bold text-base mb-2 line-clamp-2 text-[var(--foreground)]">
           {typeof product.title === 'string' ? product.title : product.title?.de || 'Unbenannt'}
         </h3>
-        <p
-          className="text-sm line-clamp-3 flex-1"
-          style={{ color: 'var(--sbb-color-granite)' }}
-        >
+        <p className="text-sm line-clamp-3 flex-1 text-[var(--muted-foreground)]">
           {typeof product.description === 'string'
             ? product.description
             : product.description?.de || ''}
@@ -632,27 +509,23 @@ function RailAwayCard({ product }: { product: RailAwayProduct }) {
 
         {/* Price */}
         {product.price && (
-          <div
-            className="mt-3 pt-2 border-t flex justify-between items-center"
-            style={{ borderColor: 'var(--sbb-color-cloud)' }}
-          >
-            <span className="text-sm" style={{ color: 'var(--sbb-color-granite)' }}>
+          <div className="mt-3 pt-2 border-t border-[var(--border)] flex justify-between items-center">
+            <span className="text-sm text-[var(--muted-foreground)]">
               {t(language, 'common.from')}
             </span>
-            <span className="font-bold text-lg" style={{ color: 'var(--sbb-color-red)' }}>
+            <span className="font-bold text-lg text-[var(--primary)]">
               CHF {product.price.from}
             </span>
           </div>
         )}
-      </div>
-    </button>
+      </CardContent>
+    </Card>
   );
 }
 
 // Travel System Product Card
 function TravelSystemCard({ product }: { product: TravelSystemProduct }) {
   const { language } = useLanguageStore();
-  const cardHover = useHoverStyle('card');
   const categoryLabels: Record<string, string> = {
     'travel-pass': t(language, 'products.travelPass'),
     'travel-pass-flex': t(language, 'products.flexPass'),
@@ -668,35 +541,24 @@ function TravelSystemCard({ product }: { product: TravelSystemProduct }) {
   };
 
   return (
-    <button
+    <Card
       onClick={handleClick}
-      className="rounded-lg shadow-sm overflow-hidden flex flex-col text-left transition-all cursor-pointer"
-      style={{
-        backgroundColor: 'var(--sbb-color-white)',
-        border: '1px solid var(--sbb-color-cloud)'
-      }}
-      {...cardHover}
+      className="overflow-hidden flex flex-col text-left cursor-pointer hover:shadow-md transition-all"
     >
       {/* Category Header */}
-      <div
-        className="px-4 py-3 text-xs font-medium"
-        style={{ backgroundColor: '#D4A5A5', color: 'white' }}
-      >
+      <div className="px-4 py-3 text-xs font-medium bg-rose-300 text-white">
         {categoryLabels[product.category] || product.category}
       </div>
 
       {/* Content */}
-      <div className="p-4 flex-1 flex flex-col">
-        <h3
-          className="font-bold text-base mb-2"
-          style={{ color: 'var(--sbb-color-charcoal)' }}
-        >
+      <CardContent className="p-4 flex-1 flex flex-col">
+        <h3 className="font-bold text-base mb-2 text-[var(--foreground)]">
           {product.title || product.name}
         </h3>
 
         {/* Duration */}
         {product.duration && (
-          <p className="text-sm mb-2" style={{ color: 'var(--sbb-color-granite)' }}>
+          <p className="text-sm mb-2 text-[var(--muted-foreground)]">
             {product.duration.days} {t(language, 'common.days')}
             {product.duration.type === 'flex' && ` (${t(language, 'products.flexible')})`}
           </p>
@@ -704,17 +566,17 @@ function TravelSystemCard({ product }: { product: TravelSystemProduct }) {
 
         {/* Pricing */}
         {product.pricing && (
-          <div className="mt-auto pt-2 border-t" style={{ borderColor: 'var(--sbb-color-cloud)' }}>
+          <div className="mt-auto pt-2 border-t border-[var(--border)]">
             <div className="flex justify-between text-sm">
-              <span style={{ color: 'var(--sbb-color-granite)' }}>{t(language, 'products.secondClass')}</span>
-              <span className="font-bold" style={{ color: 'var(--sbb-color-charcoal)' }}>
+              <span className="text-[var(--muted-foreground)]">{t(language, 'products.secondClass')}</span>
+              <span className="font-bold text-[var(--foreground)]">
                 CHF {product.pricing.adult_2nd}
               </span>
             </div>
             {product.pricing.adult_1st && (
               <div className="flex justify-between text-sm">
-                <span style={{ color: 'var(--sbb-color-granite)' }}>{t(language, 'products.firstClass')}</span>
-                <span className="font-bold" style={{ color: 'var(--sbb-color-charcoal)' }}>
+                <span className="text-[var(--muted-foreground)]">{t(language, 'products.firstClass')}</span>
+                <span className="font-bold text-[var(--foreground)]">
                   CHF {product.pricing.adult_1st}
                 </span>
               </div>
@@ -726,28 +588,18 @@ function TravelSystemCard({ product }: { product: TravelSystemProduct }) {
         {product.features && product.features.length > 0 && (
           <div className="mt-2 flex flex-wrap gap-1">
             {product.features.slice(0, 3).map((feature, i) => (
-              <span
-                key={i}
-                className="text-xs px-2 py-0.5 rounded"
-                style={{
-                  backgroundColor: 'var(--sbb-color-cloud)',
-                  color: 'var(--sbb-color-granite)',
-                }}
-              >
-                {feature}
-              </span>
+              <Badge key={i} variant="secondary">{feature}</Badge>
             ))}
           </div>
         )}
-      </div>
-    </button>
+      </CardContent>
+    </Card>
   );
 }
 
 // Holiday Product Card
 function HolidayCard({ product }: { product: HolidayProduct }) {
   const { language } = useLanguageStore();
-  const cardHover = useHoverStyle('card');
   const categoryColors: Record<string, string> = {
     'train-journey': '#B08888',
     'themed-experience': '#9B88B2',
@@ -769,30 +621,20 @@ function HolidayCard({ product }: { product: HolidayProduct }) {
   };
 
   return (
-    <button
+    <Card
       onClick={handleClick}
-      className="rounded-lg shadow-sm overflow-hidden flex flex-col text-left transition-all cursor-pointer"
-      style={{
-        backgroundColor: 'var(--sbb-color-white)',
-        border: '1px solid var(--sbb-color-cloud)'
-      }}
-      {...cardHover}
+      className="overflow-hidden flex flex-col text-left cursor-pointer hover:shadow-md transition-all"
     >
       {/* Category Header */}
       <div
-        className="px-4 py-3 text-xs font-medium flex justify-between items-center"
-        style={{
-          backgroundColor: categoryColors[product.category] || '#8FA89B',
-          color: 'white',
-        }}
+        className="px-4 py-3 text-xs font-medium flex justify-between items-center text-white"
+        style={{ backgroundColor: categoryColors[product.category] || '#8FA89B' }}
       >
         <span>{product.category.replace(/-/g, ' ')}</span>
         {product.difficulty_level && (
           <span
             className="px-2 py-0.5 rounded text-xs"
-            style={{
-              backgroundColor: difficultyColors[product.difficulty_level] || '#8FA89B',
-            }}
+            style={{ backgroundColor: difficultyColors[product.difficulty_level] || '#8FA89B' }}
           >
             {product.difficulty_level}
           </span>
@@ -800,16 +642,13 @@ function HolidayCard({ product }: { product: HolidayProduct }) {
       </div>
 
       {/* Content */}
-      <div className="p-4 flex-1 flex flex-col">
-        <h3
-          className="font-bold text-base mb-2"
-          style={{ color: 'var(--sbb-color-charcoal)' }}
-        >
+      <CardContent className="p-4 flex-1 flex flex-col">
+        <h3 className="font-bold text-base mb-2 text-[var(--foreground)]">
           {product.name}
         </h3>
 
         {/* Region & Duration */}
-        <div className="flex gap-4 text-sm mb-2" style={{ color: 'var(--sbb-color-granite)' }}>
+        <div className="flex gap-4 text-sm mb-2 text-[var(--muted-foreground)]">
           {product.region && <span>{product.region}</span>}
           {product.duration && (
             <span>
@@ -821,10 +660,10 @@ function HolidayCard({ product }: { product: HolidayProduct }) {
 
         {/* Highlights */}
         {product.highlights && product.highlights.length > 0 && (
-          <ul className="text-sm space-y-1 flex-1" style={{ color: 'var(--sbb-color-iron)' }}>
+          <ul className="text-sm space-y-1 flex-1 text-[var(--muted-foreground)]">
             {product.highlights.slice(0, 3).map((highlight, i) => (
               <li key={i} className="flex items-start gap-2">
-                <span style={{ color: 'var(--sbb-color-red)' }}>•</span>
+                <span className="text-[var(--primary)]">•</span>
                 <span className="line-clamp-1">{highlight}</span>
               </li>
             ))}
@@ -833,19 +672,16 @@ function HolidayCard({ product }: { product: HolidayProduct }) {
 
         {/* Price */}
         {product.price && (
-          <div
-            className="mt-3 pt-2 border-t flex justify-between items-center"
-            style={{ borderColor: 'var(--sbb-color-cloud)' }}
-          >
-            <span className="text-sm" style={{ color: 'var(--sbb-color-granite)' }}>
+          <div className="mt-3 pt-2 border-t border-[var(--border)] flex justify-between items-center">
+            <span className="text-sm text-[var(--muted-foreground)]">
               {t(language, 'common.from')}
             </span>
-            <span className="font-bold text-lg" style={{ color: 'var(--sbb-color-red)' }}>
+            <span className="font-bold text-lg text-[var(--primary)]">
               CHF {product.price.from}
             </span>
           </div>
         )}
-      </div>
-    </button>
+      </CardContent>
+    </Card>
   );
 }

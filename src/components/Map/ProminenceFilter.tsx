@@ -11,6 +11,11 @@ import {
 } from '../../utils/prominence';
 import { t } from '../../i18n';
 import { useLanguageStore } from '../../store/languageStore';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { Checkbox } from '@/components/ui/checkbox';
+import { cn } from '@/lib/utils';
+import { ChevronDown } from 'lucide-react';
 
 interface ProminenceFilterProps {
   selectedTiers: Set<ProminenceTier>;
@@ -49,18 +54,10 @@ function ProminenceFilter({
   };
 
   return (
-    <div
-      className="absolute top-4 left-4 z-[1000] shadow-lg transition-all"
-      style={{
-        backgroundColor: 'var(--sbb-color-white)',
-        borderRadius: 'var(--sbb-border-radius-4x)',
-        border: '1px solid var(--sbb-color-cloud)',
-      }}
-    >
+    <Card className="absolute top-4 left-4 z-[1000] shadow-lg transition-all">
       {/* Header with collapse toggle */}
       <div
-        className="flex items-center justify-between px-4 py-3 border-b cursor-pointer hover:bg-opacity-50"
-        style={{ borderColor: 'var(--sbb-color-cloud)' }}
+        className="flex items-center justify-between px-4 py-3 border-b border-[var(--border)] cursor-pointer hover:bg-[var(--muted)]/50"
         onClick={onToggleExpanded}
         role="button"
         tabIndex={0}
@@ -75,68 +72,41 @@ function ProminenceFilter({
       >
         <div className="flex items-center gap-2">
           <span className="text-lg">🎯</span>
-          <h3
-            className="font-bold text-sm"
-            style={{ color: 'var(--sbb-color-charcoal)' }}
-          >
+          <h3 className="font-bold text-sm text-[var(--foreground)]">
             {t(language, 'prominence.filter')}
           </h3>
           {hasActiveFilters && (
             <span
-              className="w-2 h-2 rounded-full"
-              style={{ backgroundColor: 'var(--sbb-color-red)' }}
+              className="w-2 h-2 rounded-full bg-[var(--primary)]"
               title={t(language, 'prominence.filterActive')}
               aria-label={t(language, 'prominence.filterActive')}
             />
           )}
         </div>
-        <button
-          className="text-sm transition-transform"
-          style={{
-            color: 'var(--sbb-color-granite)',
-            transform: isExpanded ? 'rotate(180deg)' : 'rotate(0deg)',
-          }}
-          tabIndex={-1}
-          aria-hidden="true"
-        >
-          ▼
-        </button>
+        <ChevronDown
+          className={cn(
+            "h-4 w-4 text-[var(--muted-foreground)] transition-transform",
+            isExpanded && "rotate-180"
+          )}
+        />
       </div>
 
       {/* Filter content */}
       {isExpanded && (
-        <div className="p-4">
+        <CardContent className="p-4">
           {/* Select All / Deselect All */}
           <div className="mb-4">
-            <button
+            <Button
+              variant={allSelected || noneSelected ? 'outline' : 'default'}
+              className="w-full justify-start"
               onClick={(e) => {
                 e.stopPropagation();
                 onToggleAll();
               }}
-              className="w-full px-3 py-2 rounded text-sm font-medium transition-colors text-left"
-              style={{
-                backgroundColor: allSelected || noneSelected
-                  ? 'var(--sbb-color-milk)'
-                  : 'var(--sbb-color-red)',
-                color: allSelected || noneSelected
-                  ? 'var(--sbb-color-charcoal)'
-                  : 'var(--sbb-color-white)',
-                border: '1px solid var(--sbb-color-cloud)',
-              }}
-              onMouseEnter={(e) => {
-                if (!(allSelected || noneSelected)) {
-                  e.currentTarget.style.backgroundColor = 'var(--sbb-color-red125)';
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (!(allSelected || noneSelected)) {
-                  e.currentTarget.style.backgroundColor = 'var(--sbb-color-red)';
-                }
-              }}
               aria-label={allSelected || noneSelected ? t(language, 'prominence.selectAllTiers') : t(language, 'prominence.deselectAllTiers')}
             >
               {allSelected || noneSelected ? `✓ ${t(language, 'common.selectAll')}` : `✕ ${t(language, 'common.deselectAll')}`}
-            </button>
+            </Button>
           </div>
 
           {/* Tier checkboxes */}
@@ -151,45 +121,23 @@ function ProminenceFilter({
               return (
                 <label
                   key={tier}
-                  className="flex items-center gap-3 px-3 py-2 rounded cursor-pointer transition-colors"
-                  style={{
-                    backgroundColor: isSelected
-                      ? 'var(--sbb-color-milk)'
-                      : 'transparent',
-                  }}
-                  onMouseEnter={(e) => {
-                    if (!isSelected) {
-                      e.currentTarget.style.backgroundColor = 'var(--sbb-color-cloud)';
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    if (!isSelected) {
-                      e.currentTarget.style.backgroundColor = 'transparent';
-                    }
-                  }}
+                  className={cn(
+                    "flex items-center gap-3 px-3 py-2 rounded cursor-pointer transition-colors",
+                    isSelected ? "bg-[var(--muted)]" : "hover:bg-[var(--muted)]"
+                  )}
                   onClick={(e) => e.stopPropagation()}
                 >
-                  {/* Custom checkbox */}
-                  <div
-                    className="w-5 h-5 rounded border-2 flex items-center justify-center flex-shrink-0 transition-all"
-                    style={{
-                      borderColor: isSelected ? color : 'var(--sbb-color-cloud)',
-                      backgroundColor: isSelected ? color : 'transparent',
-                    }}
-                  >
-                    {isSelected && (
-                      <span className="text-white text-xs font-bold">✓</span>
-                    )}
-                  </div>
+                  <Checkbox
+                    checked={isSelected}
+                    onCheckedChange={() => onToggleTier(tier)}
+                    aria-label={t(language, 'prominence.filterTier', { tier: label, count })}
+                  />
 
                   {/* Tier info */}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
                       <span>{emoji}</span>
-                      <span
-                        className="text-sm font-medium"
-                        style={{ color: 'var(--sbb-color-charcoal)' }}
-                      >
+                      <span className="text-sm font-medium text-[var(--foreground)]">
                         {label}
                       </span>
                     </div>
@@ -199,36 +147,19 @@ function ProminenceFilter({
                   <span
                     className="px-2 py-0.5 rounded-full text-xs font-medium flex-shrink-0"
                     style={{
-                      backgroundColor: isSelected
-                        ? color
-                        : 'var(--sbb-color-cloud)',
-                      color: isSelected ? 'white' : 'var(--sbb-color-granite)',
+                      backgroundColor: isSelected ? color : 'var(--muted)',
+                      color: isSelected ? 'white' : 'var(--muted-foreground)',
                     }}
                   >
                     {count}
                   </span>
-
-                  {/* Hidden input for accessibility */}
-                  <input
-                    type="checkbox"
-                    checked={isSelected}
-                    onChange={() => onToggleTier(tier)}
-                    className="sr-only"
-                    aria-label={t(language, 'prominence.filterTier', { tier: label, count })}
-                  />
                 </label>
               );
             })}
           </div>
 
           {/* Summary */}
-          <div
-            className="mt-4 pt-4 border-t text-xs text-center"
-            style={{
-              borderColor: 'var(--sbb-color-cloud)',
-              color: 'var(--sbb-color-granite)',
-            }}
-          >
+          <div className="mt-4 pt-4 border-t border-[var(--border)] text-xs text-center text-[var(--muted-foreground)]">
             {noneSelected ? (
               <span>{t(language, 'prominence.noSightsSelected')}</span>
             ) : (
@@ -239,9 +170,9 @@ function ProminenceFilter({
               </span>
             )}
           </div>
-        </div>
+        </CardContent>
       )}
-    </div>
+    </Card>
   );
 }
 

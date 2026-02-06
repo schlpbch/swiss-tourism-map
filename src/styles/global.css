@@ -16,6 +16,28 @@
     --color-major: var(--sbb-color-orange-light);
     --color-notable: var(--sbb-color-sky-light);
     --color-hidden: var(--sbb-color-granite);
+
+    /* shadcn/ui CSS variables mapped to SBB design tokens */
+    --background: var(--sbb-color-milk);
+    --foreground: var(--sbb-color-charcoal);
+    --card: var(--sbb-color-white);
+    --card-foreground: var(--sbb-color-charcoal);
+    --popover: var(--sbb-color-white);
+    --popover-foreground: var(--sbb-color-charcoal);
+    --primary: var(--sbb-color-red);
+    --primary-foreground: var(--sbb-color-white);
+    --secondary: var(--sbb-color-sky-light);
+    --secondary-foreground: var(--sbb-color-charcoal);
+    --muted: var(--sbb-color-cloud);
+    --muted-foreground: var(--sbb-color-granite);
+    --accent: var(--sbb-color-sky-light);
+    --accent-foreground: var(--sbb-color-charcoal);
+    --destructive: var(--sbb-color-red);
+    --destructive-foreground: var(--sbb-color-white);
+    --border: var(--sbb-color-cloud);
+    --input: var(--sbb-color-cloud);
+    --ring: var(--sbb-color-red);
+    --radius: var(--sbb-border-radius-4x);
   }
 
   * {
