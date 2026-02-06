@@ -31,9 +31,6 @@ async function request<T = unknown>(
   const method = options.method || 'GET';
   const timeout = options.timeout || TIMEOUT_MS;
 
-  // Log request
-  console.log(`API Request: ${method} ${url}`);
-
   try {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), timeout);
@@ -53,7 +50,6 @@ async function request<T = unknown>(
     const data = await response.json() as T;
 
     if (!response.ok) {
-      console.error('API Error:', data);
       throw new Error(`API Error: ${response.statusText}`);
     }
 
@@ -64,8 +60,6 @@ async function request<T = unknown>(
       headers: Object.fromEntries(response.headers.entries()),
     };
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Unknown error';
-    console.error('API Error:', message);
     throw error;
   }
 }

@@ -58,7 +58,6 @@ export default function MapContainer() {
   const handleFilterChange = useCallback(async (minProminence?: number, maxProminence?: number) => {
     try {
       setFilterLoading(true);
-      console.log(`Filtering sights: prominence ${minProminence}-${maxProminence}`);
 
       const filtered = await searchSights({
         limit: 1000,
@@ -67,10 +66,9 @@ export default function MapContainer() {
         max_prominence: maxProminence,
       });
 
-      console.log(`Filtered to ${filtered.length} sights`);
       setDisplayedSights(filtered);
     } catch (err) {
-      console.error('Error filtering sights:', err);
+      // Filter error - keep existing sights displayed
     } finally {
       setFilterLoading(false);
     }
@@ -94,23 +92,17 @@ export default function MapContainer() {
         setLoading(true);
         setError(null);
 
-        console.log('Initializing MCP connection...');
         await initializeMcp();
-
-        console.log('Loading tourism data via MCP...');
 
         const [sightsData, resortsData] = await Promise.all([
           searchSights({ limit: 1000, language: 'de' }),
           getResorts(),
         ]);
 
-        console.log(`Loaded ${sightsData.length} sights, ${resortsData.length} resorts`);
-
         setAllSights(sightsData); // Store all for tier counts
         setDisplayedSights(sightsData); // Initially display all
         setResorts(resortsData);
       } catch (err) {
-        console.error('Error loading data:', err);
         setError('Fehler beim Laden der Daten vom MCP-Server. Bitte versuchen Sie es später erneut.');
       } finally {
         setLoading(false);

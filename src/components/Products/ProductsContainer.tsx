@@ -48,66 +48,23 @@ export default function ProductsContainer() {
         setLoading(true);
         setError(null);
 
-        console.log('[Products] Initializing MCP connection...');
-
         // Add timeout wrapper to prevent hanging
         const timeoutPromise = new Promise((_, reject) =>
           setTimeout(() => reject(new Error('MCP initialization timeout')), 15000)
         );
 
         await Promise.race([initializeMcp(), timeoutPromise]);
-        console.log('[Products] MCP connection initialized');
-
-        console.log('[Products] Fetching products from backend...');
 
         const [railaway, travel, holiday] = await Promise.all([
-          (async () => {
-            console.log('[Products] → Calling searchRailAway (limit=50, language=' + language + ')');
-            try {
-              const result = await searchRailAway({ limit: 50, language });
-              console.log('[Products] ← searchRailAway returned:', result.length, 'products');
-              return result;
-            } catch (e) {
-              console.error('[Products] ✗ searchRailAway error:', e);
-              return [];
-            }
-          })(),
-          (async () => {
-            console.log('[Products] → Calling searchTravelSystem (limit=50, language=' + language + ')');
-            try {
-              const result = await searchTravelSystem({ limit: 50, language });
-              console.log('[Products] ← searchTravelSystem returned:', result.length, 'products');
-              return result;
-            } catch (e) {
-              console.error('[Products] ✗ searchTravelSystem error:', e);
-              return [];
-            }
-          })(),
-          (async () => {
-            console.log('[Products] → Calling searchHolidayProducts (limit=50, language=' + language + ')');
-            try {
-              const result = await searchHolidayProducts({ limit: 50, language });
-              console.log('[Products] ← searchHolidayProducts returned:', result.length, 'products');
-              return result;
-            } catch (e) {
-              console.error('[Products] ✗ searchHolidayProducts error:', e);
-              return [];
-            }
-          })(),
+          searchRailAway({ limit: 50, language }).catch(() => []),
+          searchTravelSystem({ limit: 50, language }).catch(() => []),
+          searchHolidayProducts({ limit: 50, language }).catch(() => []),
         ]);
-
-        console.log('[Products] ✓ All products loaded successfully:', {
-          railaway: railaway.length,
-          travelSystem: travel.length,
-          holiday: holiday.length,
-          total: railaway.length + travel.length + holiday.length,
-        });
 
         setRailawayProducts(railaway);
         setTravelProducts(travel);
         setHolidayProducts(holiday);
       } catch (err) {
-        console.error('[Products] ✗ Error loading products:', err);
         const errorMsg = err instanceof Error ? err.message : 'Fehler beim Laden der Produkte vom MCP-Server.';
         setError(errorMsg);
       } finally {
@@ -631,8 +588,6 @@ function RailAwayCard({ product }: { product: RailAwayProduct }) {
   const handleClick = () => {
     if (product.bookingUrl) {
       window.open(product.bookingUrl, '_blank');
-    } else {
-      console.log('Product clicked:', product);
     }
   };
 
@@ -708,8 +663,6 @@ function TravelSystemCard({ product }: { product: TravelSystemProduct }) {
   const handleClick = () => {
     if (product.bookingUrl) {
       window.open(product.bookingUrl, '_blank');
-    } else {
-      console.log('Product clicked:', product);
     }
   };
 
@@ -814,8 +767,6 @@ function HolidayCard({ product }: { product: HolidayProduct }) {
   const handleClick = () => {
     if (product.bookingUrl) {
       window.open(product.bookingUrl, '_blank');
-    } else {
-      console.log('Product clicked:', product);
     }
   };
 

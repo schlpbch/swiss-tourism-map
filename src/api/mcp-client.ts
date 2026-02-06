@@ -64,8 +64,6 @@ async function sendRequest<T>(method: string, params?: Record<string, unknown>):
     headers['Mcp-Session-Id'] = sessionId;
   }
 
-  console.log(`MCP: Sending request to ${MCP_SERVER_URL}`, { method, requestId: request.id });
-
   try {
     const response = await fetch(MCP_SERVER_URL, {
       method: 'POST',
@@ -73,12 +71,9 @@ async function sendRequest<T>(method: string, params?: Record<string, unknown>):
       body: JSON.stringify(request),
     });
 
-    console.log(`MCP: Response received from ${method}:`, { status: response.status, statusText: response.statusText });
-
     // Check for session ID in response headers
     const newSessionId = response.headers.get('Mcp-Session-Id');
     if (newSessionId) {
-      console.log('MCP: New session ID received:', newSessionId.substring(0, 20) + '...');
       sessionId = newSessionId;
     }
 
@@ -86,22 +81,18 @@ async function sendRequest<T>(method: string, params?: Record<string, unknown>):
 
     if (contentType.includes('text/event-stream')) {
       // Handle SSE response
-      console.log('MCP: Handling SSE response');
       return handleSseResponse<T>(response);
     } else {
       // Handle regular JSON response
       const data = await response.json() as JsonRpcResponse<T>;
 
       if (data.error) {
-        console.error(`MCP: Error response for method ${method}:`, data.error);
         throw new Error(`MCP Error: ${data.error.message}`);
       }
 
-      console.log(`MCP: Success response for method ${method}`);
       return data.result as T;
     }
   } catch (error) {
-    console.error(`MCP: Failed to send request to ${method}:`, error);
     throw error;
   }
 }
@@ -192,8 +183,6 @@ async function sendNotification(method: string, params?: Record<string, unknown>
  */
 export async function initializeMcp(): Promise<void> {
   try {
-    console.log('MCP: Sending initialize request to', MCP_SERVER_URL);
-
     const initResponse = await sendRequest('initialize', {
       protocolVersion: '2024-11-05',
       capabilities: {
@@ -205,18 +194,9 @@ export async function initializeMcp(): Promise<void> {
       },
     });
 
-    console.log('MCP: Initialize response received:', initResponse);
-
     // Send initialized notification (no response expected)
     await sendNotification('notifications/initialized', {});
-
-    console.log('MCP: connection initialized successfully');
   } catch (error) {
-    console.error('MCP: Failed to initialize:', error);
-    if (error instanceof Error) {
-      console.error('MCP: Error message:', error.message);
-      console.error('MCP: Error stack:', error.stack);
-    }
     throw error;
   }
 }
