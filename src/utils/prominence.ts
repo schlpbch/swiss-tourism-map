@@ -58,19 +58,6 @@ export function getProminenceTierLabel(tier: ProminenceTier): string {
 }
 
 /**
- * Get emoji for a prominence tier
- */
-export function getProminenceTierEmoji(tier: ProminenceTier): string {
-  const emojis: Record<ProminenceTier, string> = {
-    'iconic': '⭐',
-    'major': '🌟',
-    'notable': '✨',
-    'hidden-gem': '💎',
-  };
-  return emojis[tier] || '🎯';
-}
-
-/**
  * Get marker color name for a prominence tier (for Leaflet color markers)
  */
 export function getMarkerColorName(tier?: ProminenceTier): string {

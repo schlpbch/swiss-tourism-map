@@ -5,9 +5,6 @@
 
 import React from 'react';
 import type { ProminenceTier } from '../../types/sight';
-import {
-  getProminenceTierEmoji,
-} from '../../utils/prominence';
 import { t } from '../../i18n';
 import { useLanguageStore } from '../../store/languageStore';
 import { Button } from '@/components/ui/button';
@@ -73,7 +70,7 @@ function ProminenceFilter({
             aria-label={t(language, 'prominence.toggleFilter')}
           >
             <div className="flex items-center gap-2">
-              <span className="text-lg">🎯</span>
+              <span className="text-lg font-bold text-[var(--primary)]">#</span>
               <h3 className="font-bold text-sm text-[var(--foreground)]">
                 {t(language, 'prominence.filter')}
               </h3>
@@ -108,7 +105,7 @@ function ProminenceFilter({
                 }}
                 aria-label={allSelected || noneSelected ? t(language, 'prominence.selectAllTiers') : t(language, 'prominence.deselectAllTiers')}
               >
-                {allSelected || noneSelected ? `✓ ${t(language, 'common.selectAll')}` : `✕ ${t(language, 'common.deselectAll')}`}
+                {allSelected || noneSelected ? t(language, 'common.selectAll') : t(language, 'common.deselectAll')}
               </Button>
             </div>
 
@@ -118,7 +115,6 @@ function ProminenceFilter({
                 const isSelected = selectedTiers.has(tier);
                 const count = tierCounts[tier] || 0;
                 const label = getTierLabel(tier);
-                const emoji = getProminenceTierEmoji(tier);
 
                 return (
                   <label
@@ -138,7 +134,6 @@ function ProminenceFilter({
                     {/* Tier info */}
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
-                        <span>{emoji}</span>
                         <span className="text-sm font-medium text-[var(--foreground)]">
                           {label}
                         </span>

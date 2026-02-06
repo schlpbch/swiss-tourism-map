@@ -18,9 +18,10 @@ import { useLanguageStore } from '../../store/languageStore';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Spinner } from '@/components/ui/spinner';
-import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
-import { AlertCircle } from 'lucide-react';
+import { Skeleton } from '@/components/ui/skeleton';
+import FullPageError from '../FullPageError';
+import CardActionFooter from '../CardActionFooter';
+import BadgeList from '../BadgeList';
 
 // Switzerland center coordinates
 const SWITZERLAND_CENTER: [number, number] = [46.8, 8.2];
@@ -130,32 +131,24 @@ export default function MapContainer() {
 
   if (loading) {
     return (
-      <div className="w-full h-full flex items-center justify-center bg-[var(--background)]">
-        <div className="text-center">
-          <Spinner size="lg" />
-          <p className="mt-4 text-sm text-[var(--muted-foreground)]">
-            {t(language, 'loadingMessages.tourismData')}
-          </p>
+      <div className="w-full h-full flex bg-[var(--background)]">
+        {/* Sidebar skeleton */}
+        <div className="w-64 border-r border-[var(--border)] p-4 space-y-4">
+          <Skeleton className="h-6 w-32" />
+          <Skeleton className="h-8 w-full" />
+          <Skeleton className="h-8 w-full" />
+          <Skeleton className="h-8 w-full" />
+        </div>
+        {/* Map area skeleton */}
+        <div className="flex-1 p-4">
+          <Skeleton className="w-full h-full rounded-lg" />
         </div>
       </div>
     );
   }
 
   if (error) {
-    return (
-      <div className="w-full h-full flex items-center justify-center bg-[var(--background)]">
-        <Alert variant="destructive" className="max-w-md">
-          <AlertCircle className="h-4 w-4" />
-          <AlertTitle>{t(language, 'error')}</AlertTitle>
-          <AlertDescription className="mt-2">
-            <p className="mb-3">{error}</p>
-            <Button size="sm" onClick={() => window.location.reload()}>
-              {t(language, 'common.reload')}
-            </Button>
-          </AlertDescription>
-        </Alert>
-      </div>
-    );
+    return <FullPageError error={error} onRetry={() => window.location.reload()} />;
   }
 
   return (
@@ -185,7 +178,7 @@ export default function MapContainer() {
 
                 {sight.region && (
                   <p className="text-xs mb-2 text-[var(--muted-foreground)]">
-                    📍 {sight.region}
+                    {sight.region}
                   </p>
                 )}
 
@@ -200,34 +193,22 @@ export default function MapContainer() {
                 {sight.prominence && (
                   <div className="mb-3">
                     <Badge variant="secondary">
-                      ⭐ {sight.prominence.tier} - {sight.prominence.score}/100
+                      {sight.prominence.tier} - {sight.prominence.score}/100
                     </Badge>
                   </div>
                 )}
 
                 {sight.tags && sight.tags.length > 0 && (
-                  <div className="mt-2 flex flex-wrap gap-1">
-                    {sight.tags.slice(0, 4).map((tag, i) => (
-                      <Badge key={i} variant="outline">{tag}</Badge>
-                    ))}
-                  </div>
+                  <BadgeList items={sight.tags} variant="outline" maxVisible={4} className="mt-2" />
                 )}
 
                 {/* Action Links */}
-                <div className="mt-4 pt-3 border-t border-[var(--border)] flex gap-2">
-                  {(sight.website || sight.url) && (
-                    <Button asChild size="sm" className="flex-1">
-                      <a href={sight.website || sight.url} target="_blank" rel="noopener noreferrer">
-                        {t(language, 'common.website')}
-                      </a>
-                    </Button>
-                  )}
-                  <Button asChild size="sm" className="flex-1">
-                    <a href="/products">
-                      {t(language, 'nav.products')}
-                    </a>
-                  </Button>
-                </div>
+                <CardActionFooter
+                  externalUrl={sight.website || sight.url}
+                  internalHref="/products"
+                  internalLabel={t(language, 'nav.products')}
+                  className="mt-4 pt-3"
+                />
               </div>
             </Popup>
           </Marker>
@@ -247,8 +228,8 @@ export default function MapContainer() {
                 </h3>
 
                 <div className="mb-2 text-xs space-y-1 text-[var(--muted-foreground)]">
-                  <p>📍 {resort.region}</p>
-                  <p>⛰️ {t(language, 'map.elevation', { elevation: resort.elevation })}</p>
+                  <p>{resort.region}</p>
+                  <p>{t(language, 'map.elevation', { elevation: resort.elevation })}</p>
                 </div>
 
                 <div className="mb-3 border-t pt-2 border-[var(--border)]">
@@ -256,41 +237,25 @@ export default function MapContainer() {
                     {t(language, 'map.seasons')}:
                   </p>
                   <div className="flex flex-wrap gap-1">
-                    {resort.seasons.map((season) => {
-                      const seasonEmojis: Record<string, string> = {
-                        'winter': '❄️',
-                        'spring': '🌸',
-                        'summer': '☀️',
-                        'autumn': '🍂'
-                      };
-                      return (
-                        <Badge key={season} variant="resort">
-                          {seasonEmojis[season] || '📅'} {t(language, `seasons.${season}`)}
-                        </Badge>
-                      );
-                    })}
+                    {resort.seasons.map((season) => (
+                      <Badge key={season} variant="resort">
+                        {t(language, `seasons.${season}`)}
+                      </Badge>
+                    ))}
                   </div>
                 </div>
 
                 <p className="text-xs text-[var(--muted-foreground)]">
-                  🏔️ {t(language, 'resorts.alpineResort')}
+                  {t(language, 'resorts.alpineResort')}
                 </p>
 
                 {/* Action Links */}
-                <div className="mt-4 pt-2 border-t border-[var(--border)] flex gap-2">
-                  {(resort.website || resort.url) && (
-                    <Button asChild size="sm" className="flex-1">
-                      <a href={resort.website || resort.url} target="_blank" rel="noopener noreferrer">
-                        {t(language, 'common.website')}
-                      </a>
-                    </Button>
-                  )}
-                  <Button asChild size="sm" className="flex-1">
-                    <a href="/products">
-                      {t(language, 'nav.products')}
-                    </a>
-                  </Button>
-                </div>
+                <CardActionFooter
+                  externalUrl={resort.website || resort.url}
+                  internalHref="/products"
+                  internalLabel={t(language, 'nav.products')}
+                  className="mt-4 pt-2"
+                />
               </div>
             </Popup>
           </Marker>

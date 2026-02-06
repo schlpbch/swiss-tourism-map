@@ -13,13 +13,11 @@ import { useLanguageStore } from '../../store/languageStore';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
-import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
-import { Spinner } from '@/components/ui/spinner';
+import { Skeleton } from '@/components/ui/skeleton';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import {
   Tooltip,
   TooltipContent,
@@ -33,8 +31,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { cn } from '@/lib/utils';
-import { AlertCircle } from 'lucide-react';
+import FullPageError from '../FullPageError';
+import EmptyFilterState from '../EmptyFilterState';
+import CardActionFooter from '../CardActionFooter';
+import BadgeList from '../BadgeList';
+import CheckboxFilterGroup from '../CheckboxFilterGroup';
 
 export default function SightsContainer() {
   const { language } = useLanguageStore();
@@ -113,12 +114,37 @@ export default function SightsContainer() {
   // Loading state
   if (loading) {
     return (
-      <div className="w-full h-screen flex items-center justify-center bg-[var(--background)]">
-        <div className="text-center">
-          <Spinner size="lg" />
-          <p className="mt-4 text-sm text-[var(--muted-foreground)]">
-            {t(language, 'loadingMessages.sights')}
-          </p>
+      <div className="flex h-full bg-[var(--background)]">
+        {/* Sidebar skeleton */}
+        <div className="w-64 border-r border-[var(--border)] p-6 space-y-4">
+          <Skeleton className="h-6 w-24" />
+          <Skeleton className="h-9 w-full" />
+          <Skeleton className="h-px w-full" />
+          <Skeleton className="h-5 w-32" />
+          <Skeleton className="h-6 w-full" />
+          <Skeleton className="h-6 w-full" />
+          <Skeleton className="h-6 w-full" />
+          <Skeleton className="h-6 w-full" />
+        </div>
+        {/* Card grid skeleton */}
+        <div className="flex-1 p-6">
+          <Skeleton className="h-8 w-48 mb-6" />
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className="rounded-lg border border-[var(--border)] overflow-hidden">
+                <Skeleton className="h-8 w-full" />
+                <div className="p-4 space-y-3">
+                  <Skeleton className="h-5 w-3/4" />
+                  <Skeleton className="h-4 w-1/2" />
+                  <Skeleton className="h-16 w-full" />
+                  <div className="flex gap-1">
+                    <Skeleton className="h-5 w-16" />
+                    <Skeleton className="h-5 w-16" />
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     );
@@ -126,15 +152,7 @@ export default function SightsContainer() {
 
   // Error state
   if (error) {
-    return (
-      <div className="w-full h-screen flex items-center justify-center bg-[var(--background)]">
-        <Alert variant="destructive" className="max-w-md">
-          <AlertCircle className="h-4 w-4" />
-          <AlertTitle>{t(language, 'error')}</AlertTitle>
-          <AlertDescription>{error}</AlertDescription>
-        </Alert>
-      </div>
-    );
+    return <FullPageError error={error} className="h-screen" />;
   }
 
   return (
@@ -165,39 +183,24 @@ export default function SightsContainer() {
               {/* Prominence Tiers */}
               <div className="space-y-2 mb-6">
                 <Label>{t(language, 'prominence.tiers')}</Label>
-                <div className="space-y-2">
-                  {(['iconic', 'major', 'notable', 'hidden-gem'] as ProminenceTier[]).map(tier => {
-                    const isSelected = selectedTiers.has(tier);
-                    const tierInfo = PROMINENCE_TIERS[tier];
-                    return (
-                      <label
-                        key={tier}
-                        className={cn(
-                          'flex items-center gap-2 cursor-pointer px-2 py-1.5 rounded transition-colors',
-                          isSelected ? 'bg-[var(--muted)]' : 'hover:bg-[var(--muted)]'
-                        )}
-                      >
-                        <Checkbox
-                          checked={isSelected}
-                          onCheckedChange={() => {
-                            setSelectedTiers(prev => {
-                              const next = new Set(prev);
-                              if (next.has(tier)) {
-                                next.delete(tier);
-                              } else {
-                                next.add(tier);
-                              }
-                              return next;
-                            });
-                          }}
-                        />
-                        <span className="text-sm text-[var(--foreground)]">
-                          {tierInfo.label}
-                        </span>
-                      </label>
-                    );
-                  })}
-                </div>
+                <CheckboxFilterGroup
+                  options={(['iconic', 'major', 'notable', 'hidden-gem'] as ProminenceTier[]).map(tier => ({
+                    value: tier,
+                    label: PROMINENCE_TIERS[tier].label,
+                  }))}
+                  selected={selectedTiers}
+                  onToggle={(tier) => {
+                    setSelectedTiers(prev => {
+                      const next = new Set(prev);
+                      if (next.has(tier as ProminenceTier)) {
+                        next.delete(tier as ProminenceTier);
+                      } else {
+                        next.add(tier as ProminenceTier);
+                      }
+                      return next;
+                    });
+                  }}
+                />
               </div>
 
               <Separator className="my-4" />
@@ -251,11 +254,10 @@ export default function SightsContainer() {
             </h1>
 
             {filteredSights.length === 0 ? (
-              <Alert>
-                <AlertCircle className="h-4 w-4" />
-                <AlertTitle>{t(language, 'sights.noSightsFound')}</AlertTitle>
-                <AlertDescription>{t(language, 'common.tryDifferentFilters')}</AlertDescription>
-              </Alert>
+              <EmptyFilterState
+                title={t(language, 'sights.noSightsFound')}
+                description={t(language, 'common.tryDifferentFilters')}
+              />
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {filteredSights.map(sight => (
@@ -295,8 +297,7 @@ function SightCard({ sight }: { sight: Sight }) {
         </h3>
 
         {sight.region && (
-          <p className="text-xs mb-2 flex items-center gap-1 text-[var(--muted-foreground)]">
-            <span>📍</span>
+          <p className="text-xs mb-2 text-[var(--muted-foreground)]">
             {sight.region}
           </p>
         )}
@@ -307,41 +308,20 @@ function SightCard({ sight }: { sight: Sight }) {
 
         {/* Categories */}
         {sight.category.length > 0 && (
-          <div className="mb-3 flex flex-wrap gap-1">
-            {sight.category.slice(0, 3).map((cat, i) => (
-              <Badge key={i} variant="outline">
-                {cat}
-              </Badge>
-            ))}
-          </div>
+          <BadgeList items={sight.category} variant="outline" maxVisible={3} className="mb-3" />
         )}
 
         {/* Tags */}
         {sight.tags && sight.tags.length > 0 && (
-          <div className="mb-3 flex flex-wrap gap-1">
-            {sight.tags.slice(0, 3).map((tag, i) => (
-              <Badge key={i} variant="secondary">
-                {tag}
-              </Badge>
-            ))}
-          </div>
+          <BadgeList items={sight.tags} variant="secondary" maxVisible={3} className="mb-3" />
         )}
 
         {/* Action Links */}
-        <div className="mt-auto pt-3 border-t border-[var(--border)] flex gap-2">
-          {(sight.website || sight.url) && (
-            <Button asChild size="sm" className="flex-1">
-              <a href={sight.website || sight.url} target="_blank" rel="noopener noreferrer">
-                {t(language, 'common.website')}
-              </a>
-            </Button>
-          )}
-          <Button asChild size="sm" className="flex-1">
-            <a href="/">
-              {t(language, 'common.onMap')}
-            </a>
-          </Button>
-        </div>
+        <CardActionFooter
+          externalUrl={sight.website || sight.url}
+          internalHref="/"
+          internalLabel={t(language, 'common.onMap')}
+        />
       </CardContent>
     </Card>
   );

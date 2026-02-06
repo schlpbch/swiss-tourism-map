@@ -16,6 +16,12 @@ import {
   SheetHeader,
   SheetTitle,
 } from '@/components/ui/sheet';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 import { Menu } from 'lucide-react';
 
@@ -117,15 +123,22 @@ export default function SbbHeader({ onLanguageChange }: SbbHeaderProps) {
 
           {/* Mobile Menu Button */}
           <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setMobileMenuOpen(true)}
-              className="md:hidden"
-              aria-label="Toggle menu"
-            >
-              <Menu className="h-6 w-6" />
-            </Button>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setMobileMenuOpen(true)}
+                    className="md:hidden"
+                    aria-label="Toggle menu"
+                  >
+                    <Menu className="h-6 w-6" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Menu</TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
             <SheetContent side="left" className="w-64">
               <SheetHeader>
                 <SheetTitle>{t(language, 'title')}</SheetTitle>

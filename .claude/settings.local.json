@@ -1,0 +1,29 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(pnpm --version:*)",
+      "Bash(test:*)",
+      "Bash(python:*)",
+      "Bash(curl:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(git tag:*)",
+      "Bash(git restore:*)",
+      "Bash(gh release create v0.1.0 --title \"v0.1.0: Enhanced Resort Cards & Fixed Hydration\" --notes \"$\\(cat <<''EOF''\n## 🎉 Release 0.1.0 - Enhanced Resort Cards & Fixed Hydration\n\n### ✨ Features\n\n#### Enhanced Resort Cards with Phase 3 Details\n- **Peak Elevation & Vertical Drop**: Display mountain height and descent information\n- **Ski Lift Count**: Show the number of available ski lifts\n- **Difficulty Classification**: Easy, Intermediate, or Difficult ratings\n- **Ski Run Distribution**: Break down of beginner/intermediate/advanced runs with color-coded badges\n  - 🟢 Beginner runs \\(green\\)\n  - 🟠 Intermediate runs \\(orange\\)  \n  - 🔴 Advanced runs \\(red\\)\n- **Best For Categories**: Tags indicating suitability for families, beginners, experts, snowboarders, etc.\n- **Amenities List**: Display available facilities \\(restaurants, lodging, ski school, parking, wellness, etc.\\)\n- **Family-Friendly Badge**: Visual indicator for resorts suitable for families\n- **Resort Descriptions**: Unique, informative text for each resort\n\n### 🐛 Bug Fixes\n\n- **Fixed Astro Hydration Errors**: Resolved critical hydration mismatches in ProductsContainer and SbbHeader that prevented the Products page from rendering\n  - Implemented manual hydration for Zustand persist middleware\n  - Added `skipHydration: true` to prevent automatic hydration conflicts\n  - Fixed server/client state synchronization during Astro SSR\n- **Fixed Active Navigation Link Highlighting**: Navigation links now properly highlight the current page\n  - Added `useEffect` hook to set current path after client hydration\n  - Ensures correct active link styling on all pages\n- **Added MCP Initialization Timeout**: Prevents hanging connections with 15-second timeout\n- **Improved Error Handling**: Individual product API calls now fail gracefully instead of crashing the entire page\n\n### 🎨 Design & Style Enhancements\n\n- **Applied Calm Color Palette**: Replaced bold SBB red/orange with softer, nature-inspired colors\n  - Soft teal \\(#4A9FA5\\) for primary accents and sights\n  - Sage green \\(#6B9E7F\\) for secondary accents and resorts\n  - Warm sand \\(#B8A87D\\) for iconic/featured items\n  - Soft charcoal \\(#4A4A4A\\) for text\n  - Soft cream \\(#F5F5F0\\) for backgrounds\n- **Consistent Styling**: Applied new color palette throughout all components\n\n### 🔧 Technical Improvements\n\n- **Replaced Axios with Native Fetch**: Reduced dependencies, smaller bundle size, better performance\n  - Implemented custom fetch wrapper with AbortController timeout handling\n  - Consistent error handling across all API calls\n- **Enhanced Logging**: Added detailed console logging for debugging MCP requests and responses\n- **Better Type Safety**: Ensured proper TypeScript types for all resort data\n\n### 📋 What''s Included\n\n- Resort card enrichment with realistic Phase 3 data based on elevation and region\n- Elevation slider filtering \\(900m - 1856m range\\)\n- Sort options \\(by name, elevation, region\\)\n- Coordinates display in DMS format\n- \"Near Me\" distance filter with geolocation\n- Activities filter with multi-select\n- Season-specific information \\(ski areas, hiking trails, months\\)\n- All pages load without hydration errors\n- Products page now fully functional\n\n### 🚀 Getting Started\n\n1. **View Enhanced Resorts**: Navigate to `/resorts` to see detailed resort cards\n2. **Filter & Sort**: Use the sidebar to filter by elevation, region, and activities\n3. **Browse Products**: Visit `/products` to browse RailAway, Travel System, and Holiday products\n4. **Select Language**: Choose from 6 languages \\(DE, EN, FR, IT, HI, ZH\\)\n\n### 🙏 Thanks\n\nThanks to everyone who reported issues and provided feedback! This release significantly improves the user experience with richer resort information and more reliable app behavior.\n\n---\n\n**Version**: 0.1.0  \n**Release Date**: February 5, 2026  \n**Commits**: 10 new commits  \n**Files Changed**: Core component improvements and bug fixes\nEOF\n\\)\")",
+      "Bash(npm run build:*)",
+      "Bash(npx tsc:*)",
+      "Bash(pnpm add:*)",
+      "Bash(pnpm build:*)",
+      "Bash(pnpm test:unit:*)",
+      "Bash(pnpm install:*)",
+      "Bash(pnpm run build:*)",
+      "Bash(npx shadcn-ui@latest:*)",
+      "Bash(pnpm run test:*)",
+      "Bash(npx astro build:*)",
+      "mcp__claude_ai_MCP_Orchestrator_SBB__swiss-tourism-mcp__tourism__search_all_products",
+      "Bash(npx vitest:*)",
+      "Bash(pnpm dlx shadcn:*)",
+      "Bash(pnpm dlx:*)"
+    ]
+  }
+}

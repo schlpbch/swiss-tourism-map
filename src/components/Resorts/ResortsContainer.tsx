@@ -13,9 +13,8 @@ import { useLanguageStore } from '../../store/languageStore';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
-import { Spinner } from '@/components/ui/spinner';
+import { Skeleton } from '@/components/ui/skeleton';
 import { Slider } from '@/components/ui/slider';
 import {
   Select,
@@ -27,9 +26,20 @@ import {
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
-import { AlertCircle } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Toggle } from '@/components/ui/toggle';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
+import { AlertCircle, MapPin } from 'lucide-react';
+import FullPageError from '../FullPageError';
+import EmptyFilterState from '../EmptyFilterState';
+import CardActionFooter from '../CardActionFooter';
+import BadgeList from '../BadgeList';
+import CheckboxFilterGroup from '../CheckboxFilterGroup';
 
 export default function ResortsContainer() {
   const { language } = useLanguageStore();
@@ -192,12 +202,43 @@ export default function ResortsContainer() {
   // Loading state
   if (loading) {
     return (
-      <div className="w-full h-screen flex items-center justify-center bg-[var(--background)]">
-        <div className="text-center">
-          <Spinner size="lg" />
-          <p className="mt-4 text-sm text-[var(--muted-foreground)]">
-            {t(language, 'loadingMessages.resorts')}
-          </p>
+      <div className="flex h-full bg-[var(--background)]">
+        {/* Sidebar skeleton */}
+        <div className="w-64 border-r border-[var(--border)] p-6 space-y-4">
+          <Skeleton className="h-6 w-24" />
+          <Skeleton className="h-9 w-full" />
+          <Skeleton className="h-px w-full" />
+          <Skeleton className="h-5 w-20" />
+          <Skeleton className="h-6 w-full" />
+          <Skeleton className="h-6 w-full" />
+          <Skeleton className="h-6 w-full" />
+          <Skeleton className="h-6 w-full" />
+          <Skeleton className="h-px w-full" />
+          <Skeleton className="h-9 w-full" />
+        </div>
+        {/* Card grid skeleton */}
+        <div className="flex-1 p-6">
+          <div className="flex justify-between mb-6">
+            <Skeleton className="h-8 w-48" />
+            <Skeleton className="h-9 w-[180px]" />
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className="rounded-lg border border-[var(--border)] overflow-hidden">
+                <Skeleton className="h-8 w-full" />
+                <div className="p-4 space-y-3">
+                  <Skeleton className="h-5 w-3/4" />
+                  <Skeleton className="h-4 w-1/2" />
+                  <Skeleton className="h-4 w-1/3" />
+                  <div className="flex gap-1">
+                    <Skeleton className="h-5 w-14" />
+                    <Skeleton className="h-5 w-14" />
+                    <Skeleton className="h-5 w-14" />
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     );
@@ -205,15 +246,7 @@ export default function ResortsContainer() {
 
   // Error state
   if (error) {
-    return (
-      <div className="w-full h-screen flex items-center justify-center bg-[var(--background)]">
-        <Alert variant="destructive" className="max-w-md">
-          <AlertCircle className="h-4 w-4" />
-          <AlertTitle>{t(language, 'error')}</AlertTitle>
-          <AlertDescription>{error}</AlertDescription>
-        </Alert>
-      </div>
-    );
+    return <FullPageError error={error} className="h-screen" />;
   }
 
   return (
@@ -245,38 +278,24 @@ export default function ResortsContainer() {
             <Label className="mb-2">
               {t(language, 'map.seasons')}
             </Label>
-          <div className="space-y-2">
-            {(['winter', 'spring', 'summer', 'autumn'] as Season[]).map(season => {
-              const isSelected = selectedSeasons.has(season);
-              return (
-                <label
-                  key={season}
-                  className={cn(
-                    'flex items-center gap-2 cursor-pointer px-2 py-1 rounded transition-colors',
-                    isSelected ? 'bg-[var(--muted)]' : 'hover:bg-[var(--muted)]'
-                  )}
-                >
-                  <Checkbox
-                    checked={isSelected}
-                    onCheckedChange={() => {
-                      setSelectedSeasons(prev => {
-                        const next = new Set(prev);
-                        if (next.has(season)) {
-                          next.delete(season);
-                        } else {
-                          next.add(season);
-                        }
-                        return next;
-                      });
-                    }}
-                  />
-                  <span className="text-sm text-[var(--foreground)]">
-                    {t(language, `seasons.${season}`)}
-                  </span>
-                </label>
-              );
-            })}
-          </div>
+          <CheckboxFilterGroup
+            options={(['winter', 'spring', 'summer', 'autumn'] as Season[]).map(season => ({
+              value: season,
+              label: t(language, `seasons.${season}`),
+            }))}
+            selected={selectedSeasons}
+            onToggle={(season) => {
+              setSelectedSeasons(prev => {
+                const next = new Set(prev);
+                if (next.has(season as Season)) {
+                  next.delete(season as Season);
+                } else {
+                  next.add(season as Season);
+                }
+                return next;
+              });
+            }}
+          />
         </div>
 
           <Separator className="mb-6" />
@@ -351,34 +370,50 @@ export default function ResortsContainer() {
             <Label className="mb-2">
               {t(language, 'resorts.proximity')}
             </Label>
-            <Button
-              variant={userLocation ? 'secondary' : 'outline'}
-              className="w-full mb-2"
-              onClick={() => {
-                setLocationError(null);
-                if ('geolocation' in navigator) {
-                  navigator.geolocation.getCurrentPosition(
-                    (position) => {
-                      setUserLocation({
-                        lat: position.coords.latitude,
-                        lng: position.coords.longitude,
-                      });
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Toggle
+                    variant="outline"
+                    className="w-full mb-2 gap-2"
+                    pressed={!!userLocation}
+                    onPressedChange={(pressed) => {
                       setLocationError(null);
-                    },
-                    () => {
-                      setLocationError(t(language, 'errors.geolocationFailed'));
-                      setUserLocation(null);
-                    }
-                  );
-                } else {
-                  setLocationError(t(language, 'errors.geolocationNotSupported'));
-                }
-              }}
-            >
-              {userLocation ? t(language, 'resorts.locationEnabled') : t(language, 'resorts.useMyLocation')}
-            </Button>
+                      if (pressed) {
+                        if ('geolocation' in navigator) {
+                          navigator.geolocation.getCurrentPosition(
+                            (position) => {
+                              setUserLocation({
+                                lat: position.coords.latitude,
+                                lng: position.coords.longitude,
+                              });
+                              setLocationError(null);
+                            },
+                            () => {
+                              setLocationError(t(language, 'errors.geolocationFailed'));
+                              setUserLocation(null);
+                            }
+                          );
+                        } else {
+                          setLocationError(t(language, 'errors.geolocationNotSupported'));
+                        }
+                      } else {
+                        setUserLocation(null);
+                      }
+                    }}
+                  >
+                    <MapPin className="h-4 w-4" />
+                    {userLocation ? t(language, 'resorts.locationEnabled') : t(language, 'resorts.useMyLocation')}
+                  </Toggle>
+                </TooltipTrigger>
+                <TooltipContent>{t(language, 'resorts.useMyLocation')}</TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
             {locationError && (
-              <p className="text-xs mb-2 text-[var(--destructive)]">{locationError}</p>
+              <Alert variant="destructive" className="mb-2 py-2">
+                <AlertCircle className="h-3 w-3" />
+                <AlertDescription className="text-xs">{locationError}</AlertDescription>
+              </Alert>
             )}
             {userLocation && (
               <div>
@@ -406,36 +441,24 @@ export default function ResortsContainer() {
             <Label className="mb-2">
               {t(language, 'resorts.activities')}
             </Label>
-            <div className="space-y-2">
-              {RESORT_ACTIVITIES.map(activity => {
-                const isSelected = selectedActivities.has(activity);
-                return (
-                  <label
-                    key={activity}
-                    className={cn(
-                      'flex items-center gap-2 cursor-pointer px-2 py-1 rounded transition-colors',
-                      isSelected ? 'bg-[var(--muted)]' : 'hover:bg-[var(--muted)]'
-                    )}
-                  >
-                    <Checkbox
-                      checked={isSelected}
-                      onCheckedChange={() => {
-                        setSelectedActivities(prev => {
-                          const next = new Set(prev);
-                          if (next.has(activity)) {
-                            next.delete(activity);
-                          } else {
-                            next.add(activity);
-                          }
-                          return next;
-                        });
-                      }}
-                    />
-                    <span className="text-sm text-[var(--foreground)]">{activity}</span>
-                  </label>
-                );
-              })}
-            </div>
+            <CheckboxFilterGroup
+              options={RESORT_ACTIVITIES.map(activity => ({
+                value: activity,
+                label: activity,
+              }))}
+              selected={selectedActivities}
+              onToggle={(activity) => {
+                setSelectedActivities(prev => {
+                  const next = new Set(prev);
+                  if (next.has(activity)) {
+                    next.delete(activity);
+                  } else {
+                    next.add(activity);
+                  }
+                  return next;
+                });
+              }}
+            />
           </div>
 
           <Separator className="mb-6" />
@@ -488,11 +511,10 @@ export default function ResortsContainer() {
         </div>
 
         {filteredResorts.length === 0 ? (
-          <div className="text-center py-12">
-            <p className="text-sm text-[var(--muted-foreground)]">
-              {t(language, 'resorts.noResortsFound')} {t(language, 'common.tryDifferentFilters')}
-            </p>
-          </div>
+          <EmptyFilterState
+            title={t(language, 'resorts.noResortsFound')}
+            description={t(language, 'common.tryDifferentFilters')}
+          />
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {sortedResorts.map(resort => (
@@ -540,14 +562,7 @@ function ResortCard({ resort }: { resort: Resort }) {
 
         {/* Activity Tags */}
         {resort.activities && resort.activities.length > 0 && (
-          <div className="mb-3 flex flex-wrap gap-1">
-            {resort.activities.slice(0, 4).map((activity, i) => (
-              <Badge key={i} variant="outline">{activity}</Badge>
-            ))}
-            {resort.activities.length > 4 && (
-              <Badge variant="outline">+{resort.activities.length - 4}</Badge>
-            )}
-          </div>
+          <BadgeList items={resort.activities} variant="outline" maxVisible={4} className="mb-3" />
         )}
 
         {/* Seasons */}
@@ -555,13 +570,10 @@ function ResortCard({ resort }: { resort: Resort }) {
           <p className="text-xs font-semibold mb-1 text-[var(--foreground)]">
             {t(language, 'map.seasons')}:
           </p>
-          <div className="flex flex-wrap gap-1">
-            {resort.seasons.map((season) => (
-              <Badge key={season} variant="resort">
-                {t(language, `seasons.${season}`)}
-              </Badge>
-            ))}
-          </div>
+          <BadgeList
+            items={resort.seasons.map(season => t(language, `seasons.${season}`))}
+            variant="resort"
+          />
         </div>
 
         {/* Season Details */}
@@ -673,11 +685,7 @@ function ResortCard({ resort }: { resort: Resort }) {
             <p className="text-xs font-semibold mb-2 text-[var(--foreground)]">
               {t(language, 'resorts.bestFor')}
             </p>
-            <div className="flex flex-wrap gap-1">
-              {resort.bestFor.map((tag, i) => (
-                <Badge key={i} variant="secondary">{tag}</Badge>
-              ))}
-            </div>
+            <BadgeList items={resort.bestFor} variant="secondary" />
           </div>
         )}
 
@@ -687,41 +695,25 @@ function ResortCard({ resort }: { resort: Resort }) {
             <p className="text-xs font-semibold mb-2 text-[var(--foreground)]">
               {t(language, 'resorts.amenities')}
             </p>
-            <div className="flex flex-wrap gap-1">
-              {resort.amenities.slice(0, 5).map((amenity, i) => (
-                <Badge key={i} variant="outline">{amenity}</Badge>
-              ))}
-              {resort.amenities.length > 5 && (
-                <Badge variant="outline">+{resort.amenities.length - 5}</Badge>
-              )}
-            </div>
+            <BadgeList items={resort.amenities} variant="outline" maxVisible={5} />
           </div>
         )}
 
         {/* Family Friendly Badge */}
         {resort.familyFriendly && (
-          <div className="mb-4 p-2 rounded bg-[var(--secondary)]/10">
-            <p className="text-xs font-semibold text-[var(--secondary)]">
-              👨‍👩‍👧‍👦 {t(language, 'common.familyFriendly')}
-            </p>
+          <div className="mb-4">
+            <Badge variant="secondary">
+              {t(language, 'common.familyFriendly')}
+            </Badge>
           </div>
         )}
 
         {/* Action Links */}
-        <div className="mt-auto pt-3 border-t border-[var(--border)] flex gap-2">
-          {(resort.website || resort.url) && (
-            <Button asChild size="sm" className="flex-1">
-              <a href={resort.website || resort.url} target="_blank" rel="noopener noreferrer">
-                {t(language, 'common.website')}
-              </a>
-            </Button>
-          )}
-          <Button asChild size="sm" className="flex-1">
-            <a href="/">
-              {t(language, 'common.onMap')}
-            </a>
-          </Button>
-        </div>
+        <CardActionFooter
+          externalUrl={resort.website || resort.url}
+          internalHref="/"
+          internalLabel={t(language, 'common.onMap')}
+        />
       </CardContent>
     </Card>
   );

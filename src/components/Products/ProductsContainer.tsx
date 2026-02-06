@@ -20,7 +20,7 @@ import type { Lang } from '../../i18n';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Spinner } from '@/components/ui/spinner';
+import { Skeleton } from '@/components/ui/skeleton';
 import { Slider } from '@/components/ui/slider';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
@@ -33,9 +33,10 @@ import {
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
-import { AlertCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import FullPageError from '../FullPageError';
+import EmptyFilterState from '../EmptyFilterState';
+import BadgeList from '../BadgeList';
 
 type ProductTab = 'railaway' | 'travelpass' | 'holiday';
 
@@ -140,32 +141,54 @@ export default function ProductsContainer() {
 
   if (loading) {
     return (
-      <div className="w-full h-full flex items-center justify-center bg-[var(--background)]">
-        <div className="text-center">
-          <Spinner size="lg" />
-          <p className="mt-4 text-sm text-[var(--muted-foreground)]">
-            {t(language, 'loadingMessages.products')}
-          </p>
+      <div className="h-full flex flex-col bg-[var(--background)]">
+        {/* Tab bar skeleton */}
+        <div className="px-4 py-3 bg-[var(--card)] border-b border-[var(--border)] flex gap-4">
+          <Skeleton className="h-8 w-24" />
+          <Skeleton className="h-8 w-28" />
+          <Skeleton className="h-8 w-20" />
+        </div>
+        <div className="flex-1 flex overflow-hidden">
+          {/* Sidebar skeleton */}
+          <div className="w-64 border-r border-[var(--border)] p-4 space-y-4">
+            <Skeleton className="h-5 w-20" />
+            <Skeleton className="h-9 w-full" />
+            <Skeleton className="h-px w-full" />
+            <Skeleton className="h-5 w-24" />
+            <Skeleton className="h-4 w-full" />
+            <Skeleton className="h-px w-full" />
+            <Skeleton className="h-9 w-full" />
+          </div>
+          {/* Card grid skeleton */}
+          <div className="flex-1 p-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <div key={i} className="rounded-lg border border-[var(--border)] overflow-hidden">
+                  <Skeleton className="h-10 w-full" />
+                  <div className="p-4 space-y-3">
+                    <Skeleton className="h-5 w-3/4" />
+                    <Skeleton className="h-12 w-full" />
+                    <div className="flex gap-1">
+                      <Skeleton className="h-5 w-16" />
+                      <Skeleton className="h-5 w-16" />
+                    </div>
+                    <Skeleton className="h-px w-full" />
+                    <div className="flex justify-between">
+                      <Skeleton className="h-4 w-12" />
+                      <Skeleton className="h-6 w-20" />
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       </div>
     );
   }
 
   if (error) {
-    return (
-      <div className="w-full h-full flex items-center justify-center bg-[var(--background)]">
-        <Alert variant="destructive" className="max-w-md">
-          <AlertCircle className="h-4 w-4" />
-          <AlertTitle>{t(language, 'error')}</AlertTitle>
-          <AlertDescription className="mt-2">
-            <p className="mb-3">{error}</p>
-            <Button size="sm" onClick={() => window.location.reload()}>
-              {t(language, 'common.reload')}
-            </Button>
-          </AlertDescription>
-        </Alert>
-      </div>
-    );
+    return <FullPageError error={error} onRetry={() => window.location.reload()} />;
   }
 
   return (
@@ -449,11 +472,10 @@ export default function ProductsContainer() {
                   ))}
                 </div>
               ) : (
-                <div className="flex items-center justify-center h-64">
-                  <p className="text-[var(--muted-foreground)]">
-                    {t(language, 'products.noProductsFound')}
-                  </p>
-                </div>
+                <EmptyFilterState
+                  title={t(language, 'products.noProductsFound')}
+                  description={t(language, 'common.tryDifferentFilters')}
+                />
               )}
             </TabsContent>
 
@@ -465,11 +487,10 @@ export default function ProductsContainer() {
                   ))}
                 </div>
               ) : (
-                <div className="flex items-center justify-center h-64">
-                  <p className="text-[var(--muted-foreground)]">
-                    {t(language, 'products.noProductsFound')}
-                  </p>
-                </div>
+                <EmptyFilterState
+                  title={t(language, 'products.noProductsFound')}
+                  description={t(language, 'common.tryDifferentFilters')}
+                />
               )}
             </TabsContent>
 
@@ -481,11 +502,10 @@ export default function ProductsContainer() {
                   ))}
                 </div>
               ) : (
-                <div className="flex items-center justify-center h-64">
-                  <p className="text-[var(--muted-foreground)]">
-                    {t(language, 'products.noProductsFound')}
-                  </p>
-                </div>
+                <EmptyFilterState
+                  title={t(language, 'products.noProductsFound')}
+                  description={t(language, 'common.tryDifferentFilters')}
+                />
               )}
             </TabsContent>
           </ScrollArea>
@@ -585,7 +605,7 @@ function RailAwayCard({ product }: { product: RailAwayProduct }) {
             {product.visitInfo.accessibility && (
               <span>
                 {typeof product.visitInfo.accessibility === 'boolean'
-                  ? `✓ ${t(language, 'products.accessibility')}`
+                  ? t(language, 'products.accessibility')
                   : product.visitInfo.accessibility}
               </span>
             )}
@@ -594,20 +614,12 @@ function RailAwayCard({ product }: { product: RailAwayProduct }) {
 
         {/* Best Months */}
         {product.visitInfo?.bestMonths && product.visitInfo.bestMonths.length > 0 && (
-          <div className="mt-2 flex flex-wrap gap-1">
-            {product.visitInfo.bestMonths.map((month) => (
-              <Badge key={month} variant="outline" className="text-xs">{month}</Badge>
-            ))}
-          </div>
+          <BadgeList items={product.visitInfo.bestMonths} variant="outline" className="mt-2" />
         )}
 
         {/* Target Audience */}
         {product.targetAudience && product.targetAudience.length > 0 && (
-          <div className="mt-2 flex flex-wrap gap-1">
-            {product.targetAudience.map((audience) => (
-              <Badge key={audience} variant="secondary" className="text-xs">{audience}</Badge>
-            ))}
-          </div>
+          <BadgeList items={product.targetAudience} variant="secondary" className="mt-2" />
         )}
 
         {/* Price */}
@@ -635,15 +647,15 @@ function RailAwayCard({ product }: { product: RailAwayProduct }) {
 
 // Feature label mapping for display
 const featureLabels: Record<string, string> = {
-  unlimited_train: '🚆 Trains',
-  unlimited_bus: '🚌 Buses',
-  unlimited_boat: '⛴️ Boats',
-  free_museums: '🏛️ 500+ Museums',
-  mountain_discounts: '⛰️ Mountain 50%',
-  panoramic_trains: '🌄 Panoramic',
+  unlimited_train: 'Trains',
+  unlimited_bus: 'Buses',
+  unlimited_boat: 'Boats',
+  free_museums: '500+ Museums',
+  mountain_discounts: 'Mountain 50%',
+  panoramic_trains: 'Panoramic',
   '50_percent_discount': '50% off',
-  unlimited_usage: '♾️ Unlimited',
-  flexible_booking: '📅 Flexible',
+  unlimited_usage: 'Unlimited',
+  flexible_booking: 'Flexible',
 };
 
 // Travel System Product Card
@@ -723,13 +735,11 @@ function TravelSystemCard({ product }: { product: TravelSystemProduct }) {
 
         {/* Features */}
         {product.features && product.features.length > 0 && (
-          <div className="mb-2 flex flex-wrap gap-1">
-            {product.features.map((feature, i) => (
-              <Badge key={i} variant="secondary" className="text-xs">
-                {featureLabels[feature] || feature.replace(/_/g, ' ')}
-              </Badge>
-            ))}
-          </div>
+          <BadgeList
+            items={product.features.map(f => featureLabels[f] || f.replace(/_/g, ' '))}
+            variant="secondary"
+            className="mb-2"
+          />
         )}
 
         {/* Restrictions */}
@@ -884,24 +894,20 @@ function HolidayCard({ product }: { product: HolidayProduct }) {
 
         {/* Included */}
         {product.included && product.included.length > 0 && (
-          <div className="mb-2 flex flex-wrap gap-1">
-            {product.included.map((item) => (
-              <Badge key={item} variant="outline" className="text-xs">
-                {item.replace(/-/g, ' ')}
-              </Badge>
-            ))}
-          </div>
+          <BadgeList
+            items={product.included.map(item => item.replace(/-/g, ' '))}
+            variant="outline"
+            className="mb-2"
+          />
         )}
 
         {/* Best For */}
         {product.best_for && product.best_for.length > 0 && (
-          <div className="mb-2 flex flex-wrap gap-1">
-            {product.best_for.map((audience) => (
-              <Badge key={audience} variant="secondary" className="text-xs">
-                {audience.replace(/-/g, ' ')}
-              </Badge>
-            ))}
-          </div>
+          <BadgeList
+            items={product.best_for.map(a => a.replace(/-/g, ' '))}
+            variant="secondary"
+            className="mb-2"
+          />
         )}
 
         {/* Pricing — class variants */}
