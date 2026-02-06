@@ -13,9 +13,9 @@ export interface RailAwaySearchParams {
 }
 
 interface McpRailAwayResponse {
-  category_filter: string;
-  results_count: number;
+  count: number;
   results: RailAwayProduct[];
+  total_available: number;
 }
 
 interface McpCategoriesResponse {
@@ -30,11 +30,11 @@ interface McpCategoriesResponse {
  * Search RailAway products via MCP
  */
 export async function searchRailAway(params: RailAwaySearchParams = {}): Promise<RailAwayProduct[]> {
-  const result = await callTool<McpRailAwayResponse>('tourism__search_railaway_products', {
-    query: params.query || '',
-    language: params.language || 'de',
-    category: params.category || '',
-    limit: params.limit || 200,
+  const result = await callTool<McpRailAwayResponse>('tourism__search_all_products', {
+    text: params.query || '',
+    category: params.category || null,
+    product_type: 'railaway',
+    limit: Math.min(params.limit || 50, 50),
   });
 
   return result.results || [];

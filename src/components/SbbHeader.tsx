@@ -10,6 +10,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from '@/components/ui/sheet';
 import { cn } from '@/lib/utils';
 import { Menu } from 'lucide-react';
 
@@ -110,44 +116,44 @@ export default function SbbHeader({ onLanguageChange }: SbbHeaderProps) {
           </Select>
 
           {/* Mobile Menu Button */}
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className={cn(
-              'md:hidden',
-              mobileMenuOpen && 'bg-[var(--background)]'
-            )}
-            aria-label="Toggle menu"
-          >
-            <Menu className="h-6 w-6" />
-          </Button>
+          <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setMobileMenuOpen(true)}
+              className="md:hidden"
+              aria-label="Toggle menu"
+            >
+              <Menu className="h-6 w-6" />
+            </Button>
+            <SheetContent side="left" className="w-64">
+              <SheetHeader>
+                <SheetTitle>{t(language, 'title')}</SheetTitle>
+              </SheetHeader>
+              <nav className="mt-6 space-y-2">
+                {navItems.map((item) => {
+                  const isActive = currentPath === item.href;
+                  return (
+                    <a
+                      key={item.href}
+                      href={item.href}
+                      onClick={() => setMobileMenuOpen(false)}
+                      className={cn(
+                        'block px-3 py-2 rounded-lg text-sm font-medium transition-all',
+                        isActive
+                          ? 'bg-[var(--muted)] text-[var(--primary)]'
+                          : 'text-[var(--foreground)] hover:bg-[var(--muted)]'
+                      )}
+                    >
+                      {t(language, item.key)}
+                    </a>
+                  );
+                })}
+              </nav>
+            </SheetContent>
+          </Sheet>
         </div>
       </div>
-
-      {/* Mobile Navigation Menu */}
-      {mobileMenuOpen && (
-        <div className="md:hidden border-t px-4 py-3 space-y-2 bg-[var(--background)] border-[var(--border)]">
-          {navItems.map((item) => {
-            const isActive = currentPath === item.href;
-            return (
-              <a
-                key={item.href}
-                href={item.href}
-                onClick={() => setMobileMenuOpen(false)}
-                className={cn(
-                  'block px-3 py-2 rounded-lg text-sm font-medium transition-all',
-                  isActive
-                    ? 'bg-[var(--muted)] text-[var(--primary)]'
-                    : 'text-[var(--foreground)]'
-                )}
-              >
-                {t(language, item.key)}
-              </a>
-            );
-          })}
-        </div>
-      )}
     </header>
   );
 }

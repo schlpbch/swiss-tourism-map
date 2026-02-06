@@ -13,10 +13,12 @@ import {
   type HolidayProduct,
 } from '../../api/products';
 import type { RailAwayProduct } from '../../types/railaway';
+import { getLocalizedText } from '../../types/common';
 import { useLanguageStore } from '../../store/languageStore';
 import { t } from '../../i18n';
+import type { Lang } from '../../i18n';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Spinner } from '@/components/ui/spinner';
 import { Slider } from '@/components/ui/slider';
@@ -28,6 +30,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { Label } from '@/components/ui/label';
+import { Separator } from '@/components/ui/separator';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
+import { AlertCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 type ProductTab = 'railaway' | 'travelpass' | 'holiday';
@@ -110,7 +117,7 @@ export default function ProductsContainer() {
   // Filter logic for Holiday
   const filteredHoliday = holidayProducts.filter((product) => {
     const categoryMatch = holidayCategory === 'all' || product.category === holidayCategory;
-    const regionMatch = holidayRegion === 'all' || product.region === holidayRegion;
+    const regionMatch = holidayRegion === 'all' || (Array.isArray(product.region) ? product.region.includes(holidayRegion) : product.region === holidayRegion);
     const difficultyMatch = holidayDifficulty === 'all' || product.difficulty_level === holidayDifficulty;
     const durationMatch =
       holidayMaxDuration === 0 ||
@@ -120,10 +127,10 @@ export default function ProductsContainer() {
   });
 
   // Get unique categories for each product type
-  const railawayCategories = [...new Set(railawayProducts.map((p) => p.category).filter(Boolean))];
+  const railawayCategories = [...new Set(railawayProducts.map((p) => p.category).filter((c): c is string => Boolean(c)))];
   const travelCategories = [...new Set(travelProducts.map((p) => p.category).filter(Boolean))];
   const holidayCategories = [...new Set(holidayProducts.map((p) => p.category).filter(Boolean))];
-  const holidayRegions = [...new Set(holidayProducts.map((p) => p.region).filter(Boolean))].sort();
+  const holidayRegions = [...new Set(holidayProducts.flatMap((p) => Array.isArray(p.region) ? p.region : [p.region]).filter(Boolean))].sort();
 
   const tabs: { id: ProductTab; label: string; count: number }[] = [
     { id: 'railaway', label: t(language, 'products.railaway'), count: filteredRailaway.length },
@@ -147,13 +154,16 @@ export default function ProductsContainer() {
   if (error) {
     return (
       <div className="w-full h-full flex items-center justify-center bg-[var(--background)]">
-        <Card className="text-center max-w-md p-6">
-          <div className="text-5xl mb-4 text-[var(--destructive)]">⚠</div>
-          <p className="mb-4 text-sm text-[var(--muted-foreground)]">{error}</p>
-          <Button onClick={() => window.location.reload()}>
-            {t(language, 'common.reload')}
-          </Button>
-        </Card>
+        <Alert variant="destructive" className="max-w-md">
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>{t(language, 'error')}</AlertTitle>
+          <AlertDescription className="mt-2">
+            <p className="mb-3">{error}</p>
+            <Button size="sm" onClick={() => window.location.reload()}>
+              {t(language, 'common.reload')}
+            </Button>
+          </AlertDescription>
+        </Alert>
       </div>
     );
   }
@@ -183,232 +193,254 @@ export default function ProductsContainer() {
         </div>
 
         {/* Filters Sidebar & Content */}
-        <div className="flex-1 overflow-auto flex">
+        <div className="flex-1 overflow-hidden flex">
           {/* Filters */}
-          <div className="w-64 border-r p-4 overflow-y-auto bg-[var(--card)] border-[var(--border)]">
-            <h3 className="font-bold text-sm mb-4 text-[var(--foreground)]">
-              {t(language, 'common.filter')}
-            </h3>
+          <ScrollArea className="w-64 border-r bg-[var(--card)] border-[var(--border)]">
+            <div className="p-4">
+              <h3 className="font-bold text-sm mb-4 text-[var(--foreground)]">
+                {t(language, 'common.filter')}
+              </h3>
 
-            {/* RailAway Filters */}
-            {activeTab === 'railaway' && (
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium mb-2 text-[var(--foreground)]">
-                    {t(language, 'common.category')}
-                  </label>
-                  <Select value={railawayCategory} onValueChange={setRailawayCategory}>
-                    <SelectTrigger className="w-full">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">{t(language, 'common.allCategories')}</SelectItem>
-                      {railawayCategories.map((cat) => (
-                        <SelectItem key={cat} value={cat}>{cat}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+              {/* RailAway Filters */}
+              {activeTab === 'railaway' && (
+                <div className="space-y-4">
+                  <div>
+                    <Label className="mb-2">
+                      {t(language, 'common.category')}
+                    </Label>
+                    <Select value={railawayCategory} onValueChange={setRailawayCategory}>
+                      <SelectTrigger className="w-full">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">{t(language, 'common.allCategories')}</SelectItem>
+                        {railawayCategories.map((cat) => (
+                          <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <Separator />
+
+                  <div>
+                    <Label className="mb-2">
+                      {t(language, 'products.maxPrice')}: CHF {railawayMaxPrice}
+                    </Label>
+                    <Slider
+                      value={[railawayMaxPrice]}
+                      min={0}
+                      max={10000}
+                      step={100}
+                      onValueChange={([val]) => setRailawayMaxPrice(val)}
+                    />
+                  </div>
+
+                  <Separator />
+
+                  <Button
+                    variant="outline"
+                    className="w-full"
+                    onClick={() => {
+                      setRailawayCategory('all');
+                      setRailawayMaxPrice(10000);
+                    }}
+                  >
+                    {t(language, 'common.resetFilter')}
+                  </Button>
                 </div>
+              )}
 
-                <div>
-                  <label className="block text-sm font-medium mb-2 text-[var(--foreground)]">
-                    {t(language, 'products.maxPrice')}: CHF {railawayMaxPrice}
-                  </label>
-                  <Slider
-                    value={[railawayMaxPrice]}
-                    min={0}
-                    max={10000}
-                    step={100}
-                    onValueChange={([val]) => setRailawayMaxPrice(val)}
-                  />
+              {/* Travel System Filters */}
+              {activeTab === 'travelpass' && (
+                <div className="space-y-4">
+                  <div>
+                    <Label className="mb-2">
+                      {t(language, 'common.category')}
+                    </Label>
+                    <Select value={travelCategory} onValueChange={setTravelCategory}>
+                      <SelectTrigger className="w-full">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">{t(language, 'common.allCategories')}</SelectItem>
+                        {travelCategories.map((cat) => (
+                          <SelectItem key={cat} value={cat}>
+                            {cat === 'travel-pass'
+                              ? t(language, 'products.travelPass')
+                              : cat === 'travel-pass-flex'
+                                ? t(language, 'products.flexPass')
+                                : cat === 'discount-card'
+                                  ? t(language, 'products.discountCard')
+                                  : cat === 'regional-pass'
+                                    ? t(language, 'products.regionalPass')
+                                    : t(language, 'products.familyCard')}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <Separator />
+
+                  <div>
+                    <Label className="mb-2">
+                      {t(language, 'products.duration')}
+                    </Label>
+                    <Select value={travelDuration} onValueChange={setTravelDuration}>
+                      <SelectTrigger className="w-full">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">{t(language, 'products.allDays')}</SelectItem>
+                        <SelectItem value="3">{t(language, 'products.threeDays')}</SelectItem>
+                        <SelectItem value="4">{t(language, 'products.fourDays')}</SelectItem>
+                        <SelectItem value="5plus">{t(language, 'products.fivePlusDays')}</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <Separator />
+
+                  <div>
+                    <Label className="mb-2">
+                      {t(language, 'products.maxPrice')}: CHF {travelMaxPrice}
+                    </Label>
+                    <Slider
+                      value={[travelMaxPrice]}
+                      min={0}
+                      max={5000}
+                      step={50}
+                      onValueChange={([val]) => setTravelMaxPrice(val)}
+                    />
+                  </div>
+
+                  <Separator />
+
+                  <Button
+                    variant="outline"
+                    className="w-full"
+                    onClick={() => {
+                      setTravelCategory('all');
+                      setTravelDuration('all');
+                      setTravelMaxPrice(5000);
+                    }}
+                  >
+                    {t(language, 'common.resetFilter')}
+                  </Button>
                 </div>
+              )}
 
-                <Button
-                  variant="outline"
-                  className="w-full"
-                  onClick={() => {
-                    setRailawayCategory('all');
-                    setRailawayMaxPrice(10000);
-                  }}
-                >
-                  {t(language, 'common.resetFilter')}
-                </Button>
-              </div>
-            )}
+              {/* Holiday Filters */}
+              {activeTab === 'holiday' && (
+                <div className="space-y-4">
+                  <div>
+                    <Label className="mb-2">
+                      {t(language, 'common.category')}
+                    </Label>
+                    <Select value={holidayCategory} onValueChange={setHolidayCategory}>
+                      <SelectTrigger className="w-full">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">{t(language, 'common.allCategories')}</SelectItem>
+                        {holidayCategories.map((cat) => (
+                          <SelectItem key={cat} value={cat}>{cat.replace(/-/g, ' ')}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
 
-            {/* Travel System Filters */}
-            {activeTab === 'travelpass' && (
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium mb-2 text-[var(--foreground)]">
-                    {t(language, 'common.category')}
-                  </label>
-                  <Select value={travelCategory} onValueChange={setTravelCategory}>
-                    <SelectTrigger className="w-full">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">{t(language, 'common.allCategories')}</SelectItem>
-                      {travelCategories.map((cat) => (
-                        <SelectItem key={cat} value={cat}>
-                          {cat === 'travel-pass'
-                            ? t(language, 'products.travelPass')
-                            : cat === 'travel-pass-flex'
-                              ? t(language, 'products.flexPass')
-                              : cat === 'discount-card'
-                                ? t(language, 'products.discountCard')
-                                : cat === 'regional-pass'
-                                  ? t(language, 'products.regionalPass')
-                                  : t(language, 'products.familyCard')}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <Separator />
+
+                  <div>
+                    <Label className="mb-2">
+                      {t(language, 'common.region')}
+                    </Label>
+                    <Select value={holidayRegion} onValueChange={setHolidayRegion}>
+                      <SelectTrigger className="w-full">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">{t(language, 'common.allRegions')}</SelectItem>
+                        {holidayRegions.map((region) => (
+                          <SelectItem key={region} value={region}>{region}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <Separator />
+
+                  <div>
+                    <Label className="mb-2">
+                      {t(language, 'resorts.difficulty')}
+                    </Label>
+                    <Select value={holidayDifficulty} onValueChange={setHolidayDifficulty}>
+                      <SelectTrigger className="w-full">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">{t(language, 'products.allLevels')}</SelectItem>
+                        <SelectItem value="easy">{t(language, 'difficulty.easy')}</SelectItem>
+                        <SelectItem value="moderate">{t(language, 'difficulty.moderate')}</SelectItem>
+                        <SelectItem value="challenging">{t(language, 'difficulty.challenging')}</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <Separator />
+
+                  <div>
+                    <Label className="mb-2">
+                      {t(language, 'products.maxDuration')}: {holidayMaxDuration === 0 ? t(language, 'products.unlimited') : `${holidayMaxDuration} ${t(language, 'common.days')}`}
+                    </Label>
+                    <Slider
+                      value={[holidayMaxDuration]}
+                      min={0}
+                      max={30}
+                      step={1}
+                      onValueChange={([val]) => setHolidayMaxDuration(val)}
+                    />
+                  </div>
+
+                  <Separator />
+
+                  <div>
+                    <Label className="mb-2">
+                      {t(language, 'products.maxPrice')}: CHF {holidayMaxPrice}
+                    </Label>
+                    <Slider
+                      value={[holidayMaxPrice]}
+                      min={0}
+                      max={10000}
+                      step={100}
+                      onValueChange={([val]) => setHolidayMaxPrice(val)}
+                    />
+                  </div>
+
+                  <Separator />
+
+                  <Button
+                    variant="outline"
+                    className="w-full"
+                    onClick={() => {
+                      setHolidayCategory('all');
+                      setHolidayRegion('all');
+                      setHolidayDifficulty('all');
+                      setHolidayMaxDuration(30);
+                      setHolidayMaxPrice(10000);
+                    }}
+                  >
+                    {t(language, 'common.resetFilter')}
+                  </Button>
                 </div>
-
-                <div>
-                  <label className="block text-sm font-medium mb-2 text-[var(--foreground)]">
-                    {t(language, 'products.duration')}
-                  </label>
-                  <Select value={travelDuration} onValueChange={setTravelDuration}>
-                    <SelectTrigger className="w-full">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">{t(language, 'products.allDays')}</SelectItem>
-                      <SelectItem value="3">{t(language, 'products.threeDays')}</SelectItem>
-                      <SelectItem value="4">{t(language, 'products.fourDays')}</SelectItem>
-                      <SelectItem value="5plus">{t(language, 'products.fivePlusDays')}</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium mb-2 text-[var(--foreground)]">
-                    {t(language, 'products.maxPrice')}: CHF {travelMaxPrice}
-                  </label>
-                  <Slider
-                    value={[travelMaxPrice]}
-                    min={0}
-                    max={5000}
-                    step={50}
-                    onValueChange={([val]) => setTravelMaxPrice(val)}
-                  />
-                </div>
-
-                <Button
-                  variant="outline"
-                  className="w-full"
-                  onClick={() => {
-                    setTravelCategory('all');
-                    setTravelDuration('all');
-                    setTravelMaxPrice(5000);
-                  }}
-                >
-                  {t(language, 'common.resetFilter')}
-                </Button>
-              </div>
-            )}
-
-            {/* Holiday Filters */}
-            {activeTab === 'holiday' && (
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium mb-2 text-[var(--foreground)]">
-                    {t(language, 'common.category')}
-                  </label>
-                  <Select value={holidayCategory} onValueChange={setHolidayCategory}>
-                    <SelectTrigger className="w-full">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">{t(language, 'common.allCategories')}</SelectItem>
-                      {holidayCategories.map((cat) => (
-                        <SelectItem key={cat} value={cat}>{cat.replace(/-/g, ' ')}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium mb-2 text-[var(--foreground)]">
-                    {t(language, 'common.region')}
-                  </label>
-                  <Select value={holidayRegion} onValueChange={setHolidayRegion}>
-                    <SelectTrigger className="w-full">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">{t(language, 'common.allRegions')}</SelectItem>
-                      {holidayRegions.map((region) => (
-                        <SelectItem key={region} value={region}>{region}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium mb-2 text-[var(--foreground)]">
-                    {t(language, 'resorts.difficulty')}
-                  </label>
-                  <Select value={holidayDifficulty} onValueChange={setHolidayDifficulty}>
-                    <SelectTrigger className="w-full">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">{t(language, 'products.allLevels')}</SelectItem>
-                      <SelectItem value="easy">{t(language, 'difficulty.easy')}</SelectItem>
-                      <SelectItem value="moderate">{t(language, 'difficulty.moderate')}</SelectItem>
-                      <SelectItem value="challenging">{t(language, 'difficulty.challenging')}</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium mb-2 text-[var(--foreground)]">
-                    {t(language, 'products.maxDuration')}: {holidayMaxDuration === 0 ? t(language, 'products.unlimited') : `${holidayMaxDuration} ${t(language, 'common.days')}`}
-                  </label>
-                  <Slider
-                    value={[holidayMaxDuration]}
-                    min={0}
-                    max={30}
-                    step={1}
-                    onValueChange={([val]) => setHolidayMaxDuration(val)}
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium mb-2 text-[var(--foreground)]">
-                    {t(language, 'products.maxPrice')}: CHF {holidayMaxPrice}
-                  </label>
-                  <Slider
-                    value={[holidayMaxPrice]}
-                    min={0}
-                    max={10000}
-                    step={100}
-                    onValueChange={([val]) => setHolidayMaxPrice(val)}
-                  />
-                </div>
-
-                <Button
-                  variant="outline"
-                  className="w-full"
-                  onClick={() => {
-                    setHolidayCategory('all');
-                    setHolidayRegion('all');
-                    setHolidayDifficulty('all');
-                    setHolidayMaxDuration(30);
-                    setHolidayMaxPrice(10000);
-                  }}
-                >
-                  {t(language, 'common.resetFilter')}
-                </Button>
-              </div>
-            )}
-          </div>
+              )}
+            </div>
+          </ScrollArea>
 
           {/* Products Grid */}
-          <div className="flex-1 p-4 overflow-auto">
+          <ScrollArea className="flex-1 p-4">
             <TabsContent value="railaway" className="mt-0">
               {filteredRailaway.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -456,7 +488,7 @@ export default function ProductsContainer() {
                 </div>
               )}
             </TabsContent>
-          </div>
+          </ScrollArea>
         </div>
       </Tabs>
     </div>
@@ -466,6 +498,7 @@ export default function ProductsContainer() {
 // RailAway Product Card
 function RailAwayCard({ product }: { product: RailAwayProduct }) {
   const { language } = useLanguageStore();
+  const langKey = language as 'de' | 'en' | 'fr' | 'it';
   const categoryColors: Record<string, string> = {
     "Snow'n'Rail": '#94A3B8',
     "Hike'n'Rail": '#86AFBF',
@@ -477,11 +510,28 @@ function RailAwayCard({ product }: { product: RailAwayProduct }) {
 
   const bgColor = categoryColors[product.category || ''] || 'var(--muted-foreground)';
 
+  // Derive booking URL from bookingInfo or media (API has no top-level bookingUrl)
+  const bookingUrl = product.bookingUrl
+    || (product.bookingInfo?.howtoBuyUrl ? getLocalizedText(product.bookingInfo.howtoBuyUrl, langKey) : null)
+    || (product.media?.homepageUrl ? getLocalizedText(product.media.homepageUrl, langKey) : null)
+    || null;
+
   const handleClick = () => {
-    if (product.bookingUrl) {
-      window.open(product.bookingUrl, '_blank');
+    if (bookingUrl) {
+      window.open(bookingUrl, '_blank');
     }
   };
+
+  const title = getLocalizedText(product.title, langKey) || 'Unbenannt';
+  const description = getLocalizedText(product.description, langKey);
+  const discountDesc = product.discount?.description
+    ? getLocalizedText(product.discount.description, langKey)
+    : null;
+
+  // Parse discount value — API returns strings like "10%" or "20%"
+  const discountDisplay = product.discount?.value
+    ? String(product.discount.value).replace(/%$/, '')
+    : null;
 
   return (
     <Card
@@ -489,27 +539,80 @@ function RailAwayCard({ product }: { product: RailAwayProduct }) {
       className="overflow-hidden flex flex-col text-left cursor-pointer hover:shadow-md transition-all"
     >
       {/* Category Header */}
-      <div
-        className="px-4 py-3 text-xs font-medium text-white"
+      <CardHeader
+        className="px-4 py-3 text-xs font-medium text-white flex flex-row items-center justify-between"
         style={{ backgroundColor: bgColor }}
       >
-        {product.category || 'RailAway'}
-      </div>
+        <CardTitle className="text-xs font-medium">
+          {product.category || 'RailAway'}
+        </CardTitle>
+        {discountDisplay && (
+          <Badge variant="secondary" className="text-xs">
+            {t(language, 'products.discountOff', { value: discountDisplay })}
+          </Badge>
+        )}
+      </CardHeader>
 
       {/* Content */}
       <CardContent className="p-4 flex-1 flex flex-col">
         <h3 className="font-bold text-base mb-2 line-clamp-2 text-[var(--foreground)]">
-          {typeof product.title === 'string' ? product.title : product.title?.de || 'Unbenannt'}
+          {title}
         </h3>
-        <p className="text-sm line-clamp-3 flex-1 text-[var(--muted-foreground)]">
-          {typeof product.description === 'string'
-            ? product.description
-            : product.description?.de || ''}
+        <p className="text-sm line-clamp-3 text-[var(--muted-foreground)]">
+          {description}
         </p>
+
+        {/* Discount description */}
+        {discountDesc && (
+          <p className="mt-2 text-xs text-[var(--primary)] font-medium">
+            {discountDesc}
+          </p>
+        )}
+
+        {/* Location */}
+        {product.location && (product.location.city || product.location.region) && (
+          <div className="mt-2 text-xs text-[var(--muted-foreground)]">
+            {[product.location.city, product.location.region].filter(Boolean).join(', ')}
+          </div>
+        )}
+
+        {/* Visit Info */}
+        {product.visitInfo && (
+          <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-xs text-[var(--muted-foreground)]">
+            {product.visitInfo.recommendedDuration && (
+              <span>{t(language, 'products.recommendedDuration')}: {product.visitInfo.recommendedDuration}</span>
+            )}
+            {product.visitInfo.accessibility && (
+              <span>
+                {typeof product.visitInfo.accessibility === 'boolean'
+                  ? `✓ ${t(language, 'products.accessibility')}`
+                  : product.visitInfo.accessibility}
+              </span>
+            )}
+          </div>
+        )}
+
+        {/* Best Months */}
+        {product.visitInfo?.bestMonths && product.visitInfo.bestMonths.length > 0 && (
+          <div className="mt-2 flex flex-wrap gap-1">
+            {product.visitInfo.bestMonths.map((month) => (
+              <Badge key={month} variant="outline" className="text-xs">{month}</Badge>
+            ))}
+          </div>
+        )}
+
+        {/* Target Audience */}
+        {product.targetAudience && product.targetAudience.length > 0 && (
+          <div className="mt-2 flex flex-wrap gap-1">
+            {product.targetAudience.map((audience) => (
+              <Badge key={audience} variant="secondary" className="text-xs">{audience}</Badge>
+            ))}
+          </div>
+        )}
 
         {/* Price */}
         {product.price && (
-          <div className="mt-3 pt-2 border-t border-[var(--border)] flex justify-between items-center">
+          <div className="mt-auto pt-3 border-t border-[var(--border)] flex justify-between items-center">
             <span className="text-sm text-[var(--muted-foreground)]">
               {t(language, 'common.from')}
             </span>
@@ -518,10 +621,30 @@ function RailAwayCard({ product }: { product: RailAwayProduct }) {
             </span>
           </div>
         )}
+
+        {/* Book button */}
+        {bookingUrl && (
+          <Button size="sm" className="mt-3 w-full">
+            {t(language, 'products.bookNow')}
+          </Button>
+        )}
       </CardContent>
     </Card>
   );
 }
+
+// Feature label mapping for display
+const featureLabels: Record<string, string> = {
+  unlimited_train: '🚆 Trains',
+  unlimited_bus: '🚌 Buses',
+  unlimited_boat: '⛴️ Boats',
+  free_museums: '🏛️ 500+ Museums',
+  mountain_discounts: '⛰️ Mountain 50%',
+  panoramic_trains: '🌄 Panoramic',
+  '50_percent_discount': '50% off',
+  unlimited_usage: '♾️ Unlimited',
+  flexible_booking: '📅 Flexible',
+};
 
 // Travel System Product Card
 function TravelSystemCard({ product }: { product: TravelSystemProduct }) {
@@ -535,10 +658,16 @@ function TravelSystemCard({ product }: { product: TravelSystemProduct }) {
   };
 
   const handleClick = () => {
-    if (product.bookingUrl) {
-      window.open(product.bookingUrl, '_blank');
+    const url = product.bookingUrl || product.media?.homepageUrl;
+    if (url) {
+      window.open(url, '_blank');
     }
   };
+
+  // Resolve the best price to show
+  const adultPrice = product.pricing?.adult_2nd ?? product.pricing?.adult_chf;
+  const firstClassPrice = product.pricing?.adult_1st;
+  const youthPrice = product.pricing?.youth_chf;
 
   return (
     <Card
@@ -546,51 +675,118 @@ function TravelSystemCard({ product }: { product: TravelSystemProduct }) {
       className="overflow-hidden flex flex-col text-left cursor-pointer hover:shadow-md transition-all"
     >
       {/* Category Header */}
-      <div className="px-4 py-3 text-xs font-medium bg-rose-300 text-white">
-        {categoryLabels[product.category] || product.category}
-      </div>
+      <CardHeader className="px-4 py-3 bg-rose-300 text-white flex flex-row items-center justify-between">
+        <CardTitle className="text-xs font-medium">
+          {categoryLabels[product.category] || product.category}
+        </CardTitle>
+        {product.coverage && (
+          <Badge variant="secondary" className="text-xs">
+            {product.coverage}
+          </Badge>
+        )}
+      </CardHeader>
 
       {/* Content */}
       <CardContent className="p-4 flex-1 flex flex-col">
-        <h3 className="font-bold text-base mb-2 text-[var(--foreground)]">
+        <h3 className="font-bold text-base mb-1 text-[var(--foreground)]">
           {product.title || product.name}
         </h3>
 
-        {/* Duration */}
-        {product.duration && (
-          <p className="text-sm mb-2 text-[var(--muted-foreground)]">
-            {product.duration.days} {t(language, 'common.days')}
-            {product.duration.type === 'flex' && ` (${t(language, 'products.flexible')})`}
+        {/* Description */}
+        {product.description && (
+          <p className="text-sm line-clamp-2 mb-2 text-[var(--muted-foreground)]">
+            {product.description}
           </p>
         )}
 
-        {/* Pricing */}
-        {product.pricing && (
-          <div className="mt-auto pt-2 border-t border-[var(--border)]">
-            <div className="flex justify-between text-sm">
-              <span className="text-[var(--muted-foreground)]">{t(language, 'products.secondClass')}</span>
-              <span className="font-bold text-[var(--foreground)]">
-                CHF {product.pricing.adult_2nd}
-              </span>
-            </div>
-            {product.pricing.adult_1st && (
-              <div className="flex justify-between text-sm">
-                <span className="text-[var(--muted-foreground)]">{t(language, 'products.firstClass')}</span>
-                <span className="font-bold text-[var(--foreground)]">
-                  CHF {product.pricing.adult_1st}
-                </span>
-              </div>
-            )}
+        {/* Duration */}
+        {product.duration && (
+          <p className="text-xs mb-2 text-[var(--muted-foreground)]">
+            {product.duration.days} {t(language, 'common.days')}
+            {product.duration.type === 'flex' && ` (${t(language, 'products.flexible')})`}
+            {product.duration.consecutive && product.duration.type !== 'flex' && ` (${t(language, 'products.consecutive')})`}
+            {product.duration.validity_period && !product.duration.consecutive && product.duration.validity_period !== 'consecutive' && ` — ${product.duration.validity_period}`}
+          </p>
+        )}
+
+        {/* Benefits */}
+        {product.benefits && Object.keys(product.benefits).length > 0 && (
+          <div className="mb-2 space-y-1">
+            {Object.entries(product.benefits).slice(0, 3).map(([key, value]) => (
+              <p key={key} className="text-xs text-[var(--muted-foreground)] flex items-start gap-1.5">
+                <span className="text-[var(--primary)] shrink-0">•</span>
+                <span className="line-clamp-1">{value}</span>
+              </p>
+            ))}
           </div>
         )}
 
         {/* Features */}
         {product.features && product.features.length > 0 && (
-          <div className="mt-2 flex flex-wrap gap-1">
-            {product.features.slice(0, 3).map((feature, i) => (
-              <Badge key={i} variant="secondary">{feature}</Badge>
+          <div className="mb-2 flex flex-wrap gap-1">
+            {product.features.map((feature, i) => (
+              <Badge key={i} variant="secondary" className="text-xs">
+                {featureLabels[feature] || feature.replace(/_/g, ' ')}
+              </Badge>
             ))}
           </div>
+        )}
+
+        {/* Restrictions */}
+        {product.restrictions && product.restrictions.length > 0 && (
+          <div className="mb-2 text-xs text-[var(--muted-foreground)]">
+            {product.restrictions.slice(0, 2).map((r, i) => (
+              <p key={i} className="flex items-start gap-1.5">
+                <span className="text-[var(--destructive)] shrink-0">!</span>
+                <span>{r}</span>
+              </p>
+            ))}
+          </div>
+        )}
+
+        {/* Pricing */}
+        {product.pricing && (
+          <div className="mt-auto pt-2 border-t border-[var(--border)] space-y-1">
+            {adultPrice != null && (
+              <div className="flex justify-between text-sm">
+                <span className="text-[var(--muted-foreground)]">{t(language, 'products.secondClass')}</span>
+                <span className="font-bold text-[var(--primary)]">
+                  CHF {adultPrice}
+                </span>
+              </div>
+            )}
+            {firstClassPrice != null && (
+              <div className="flex justify-between text-sm">
+                <span className="text-[var(--muted-foreground)]">{t(language, 'products.firstClass')}</span>
+                <span className="font-bold text-[var(--foreground)]">
+                  CHF {firstClassPrice}
+                </span>
+              </div>
+            )}
+            {youthPrice != null && (
+              <div className="flex justify-between text-xs">
+                <span className="text-[var(--muted-foreground)]">{t(language, 'products.youthPrice')}</span>
+                <span className="text-[var(--foreground)]">CHF {youthPrice}</span>
+              </div>
+            )}
+            {product.pricing.child_chf === 0 && (
+              <p className="text-xs text-[var(--primary)]">{t(language, 'products.childFree')}</p>
+            )}
+          </div>
+        )}
+
+        {/* Validity */}
+        {product.valid_until && (
+          <p className="mt-1 text-xs text-[var(--muted-foreground)]">
+            {t(language, 'products.validity')} {t(language, 'products.validUntil', { date: product.valid_until })}
+          </p>
+        )}
+
+        {/* Book button */}
+        {(product.bookingUrl || product.media?.homepageUrl) && (
+          <Button size="sm" className="mt-3 w-full">
+            {t(language, 'products.bookNow')}
+          </Button>
         )}
       </CardContent>
     </Card>
@@ -600,6 +796,7 @@ function TravelSystemCard({ product }: { product: TravelSystemProduct }) {
 // Holiday Product Card
 function HolidayCard({ product }: { product: HolidayProduct }) {
   const { language } = useLanguageStore();
+  const langKey = language as 'de' | 'en' | 'fr' | 'it';
   const categoryColors: Record<string, string> = {
     'train-journey': '#B08888',
     'themed-experience': '#9B88B2',
@@ -608,17 +805,17 @@ function HolidayCard({ product }: { product: HolidayProduct }) {
     'city-break': '#B5966F',
   };
 
-  const difficultyColors: Record<string, string> = {
-    easy: '#8FA89B',
-    moderate: '#ADA880',
-    challenging: '#A88A88',
-  };
+  const bookingUrl = product.booking_link || product.media?.homepageUrl || null;
 
   const handleClick = () => {
-    if (product.bookingUrl) {
-      window.open(product.bookingUrl, '_blank');
+    if (bookingUrl) {
+      window.open(bookingUrl, '_blank');
     }
   };
+
+  const name = getLocalizedText(product.name, langKey) || product.id;
+  const description = product.description ? getLocalizedText(product.description, langKey) : null;
+  const regions = Array.isArray(product.region) ? product.region : [product.region].filter(Boolean);
 
   return (
     <Card
@@ -626,60 +823,131 @@ function HolidayCard({ product }: { product: HolidayProduct }) {
       className="overflow-hidden flex flex-col text-left cursor-pointer hover:shadow-md transition-all"
     >
       {/* Category Header */}
-      <div
-        className="px-4 py-3 text-xs font-medium flex justify-between items-center text-white"
+      <CardHeader
+        className="px-4 py-3 text-xs font-medium flex flex-row justify-between items-center text-white"
         style={{ backgroundColor: categoryColors[product.category] || '#8FA89B' }}
       >
-        <span>{product.category.replace(/-/g, ' ')}</span>
+        <CardTitle className="text-xs font-medium">
+          {product.category.replace(/-/g, ' ')}
+        </CardTitle>
         {product.difficulty_level && (
-          <span
-            className="px-2 py-0.5 rounded text-xs"
-            style={{ backgroundColor: difficultyColors[product.difficulty_level] || '#8FA89B' }}
+          <Badge
+            variant={
+              product.difficulty_level === 'easy'
+                ? 'difficulty-easy'
+                : product.difficulty_level === 'moderate'
+                  ? 'difficulty-moderate'
+                  : 'difficulty-hard'
+            }
+            className="text-xs"
           >
             {product.difficulty_level}
-          </span>
+          </Badge>
         )}
-      </div>
+      </CardHeader>
 
       {/* Content */}
       <CardContent className="p-4 flex-1 flex flex-col">
-        <h3 className="font-bold text-base mb-2 text-[var(--foreground)]">
-          {product.name}
+        <h3 className="font-bold text-base mb-1 text-[var(--foreground)]">
+          {name}
         </h3>
 
+        {/* Description */}
+        {description && (
+          <p className="text-sm line-clamp-2 mb-2 text-[var(--muted-foreground)]">
+            {description}
+          </p>
+        )}
+
         {/* Region & Duration */}
-        <div className="flex gap-4 text-sm mb-2 text-[var(--muted-foreground)]">
-          {product.region && <span>{product.region}</span>}
+        <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm mb-2 text-[var(--muted-foreground)]">
+          {regions.length > 0 && <span>{regions.join(', ')}</span>}
           {product.duration && (
             <span>
               {product.duration.days} {t(language, 'common.days')}
-              {product.duration.nights && ` / ${product.duration.nights} ${t(language, 'common.nights')}`}
+              {product.duration.nights != null && ` / ${product.duration.nights} ${t(language, 'common.nights')}`}
             </span>
           )}
         </div>
 
         {/* Highlights */}
         {product.highlights && product.highlights.length > 0 && (
-          <ul className="text-sm space-y-1 flex-1 text-[var(--muted-foreground)]">
+          <ul className="text-sm space-y-1 mb-2 text-[var(--muted-foreground)]">
             {product.highlights.slice(0, 3).map((highlight, i) => (
               <li key={i} className="flex items-start gap-2">
-                <span className="text-[var(--primary)]">•</span>
+                <span className="text-[var(--primary)] shrink-0">•</span>
                 <span className="line-clamp-1">{highlight}</span>
               </li>
             ))}
           </ul>
         )}
 
-        {/* Price */}
-        {product.price && (
-          <div className="mt-3 pt-2 border-t border-[var(--border)] flex justify-between items-center">
-            <span className="text-sm text-[var(--muted-foreground)]">
-              {t(language, 'common.from')}
-            </span>
-            <span className="font-bold text-lg text-[var(--primary)]">
-              CHF {product.price.from}
-            </span>
+        {/* Included */}
+        {product.included && product.included.length > 0 && (
+          <div className="mb-2 flex flex-wrap gap-1">
+            {product.included.map((item) => (
+              <Badge key={item} variant="outline" className="text-xs">
+                {item.replace(/-/g, ' ')}
+              </Badge>
+            ))}
           </div>
+        )}
+
+        {/* Best For */}
+        {product.best_for && product.best_for.length > 0 && (
+          <div className="mb-2 flex flex-wrap gap-1">
+            {product.best_for.map((audience) => (
+              <Badge key={audience} variant="secondary" className="text-xs">
+                {audience.replace(/-/g, ' ')}
+              </Badge>
+            ))}
+          </div>
+        )}
+
+        {/* Pricing — class variants */}
+        {product.price && (
+          <div className="mt-auto pt-2 border-t border-[var(--border)] space-y-1">
+            {product.price.class_variants && product.price.class_variants.length > 0 ? (
+              product.price.class_variants.map((variant) => (
+                <div key={variant.class} className="flex justify-between text-sm">
+                  <span className="text-[var(--muted-foreground)]">
+                    {variant.accommodation || variant.class.replace(/_/g, ' ')}
+                  </span>
+                  <span className={cn(
+                    "font-bold",
+                    variant.price_chf === product.price.base_chf
+                      ? "text-[var(--primary)]"
+                      : "text-[var(--foreground)]"
+                  )}>
+                    CHF {variant.price_chf}
+                  </span>
+                </div>
+              ))
+            ) : (
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-[var(--muted-foreground)]">
+                  {t(language, 'common.from')}
+                </span>
+                <span className="font-bold text-lg text-[var(--primary)]">
+                  CHF {product.price.base_chf}
+                </span>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Valid until */}
+        {product.valid_until && (
+          <p className="mt-1 text-xs text-[var(--muted-foreground)]">
+            {t(language, 'products.validity')} {t(language, 'products.validUntil', { date: product.valid_until })}
+          </p>
+        )}
+
+        {/* Book button */}
+        {bookingUrl && (
+          <Button size="sm" className="mt-3 w-full">
+            {t(language, 'products.bookNow')}
+          </Button>
         )}
       </CardContent>
     </Card>

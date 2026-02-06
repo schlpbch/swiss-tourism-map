@@ -28,6 +28,12 @@ const badgeVariants = cva(
           "border-transparent bg-sky-100 text-sky-600",
         hidden:
           "border-transparent bg-gray-100 text-gray-600",
+        "difficulty-easy":
+          "border-transparent bg-green-500 text-white",
+        "difficulty-moderate":
+          "border-transparent bg-orange-500 text-white",
+        "difficulty-hard":
+          "border-transparent bg-red-500 text-white",
       },
     },
     defaultVariants: {

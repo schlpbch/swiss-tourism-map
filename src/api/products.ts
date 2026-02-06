@@ -9,37 +9,72 @@ export interface TravelSystemProduct {
   id: string;
   name: string;
   title: string;
+  description?: string;
   category: string;
   duration: {
     days: number;
     type: string;
+    validity_period?: string;
+    consecutive?: boolean;
   };
   pricing: {
-    currency: string;
+    currency?: string;
     adult_2nd?: number;
     adult_1st?: number;
+    adult_chf?: number;
+    youth_chf?: number;
     child_2nd?: number;
     child_1st?: number;
+    child_chf?: number;
   };
   features: string[];
+  benefits?: Record<string, string>;
+  coverage?: string;
+  restrictions?: string[];
+  bookingUrl?: string;
+  media?: {
+    homepageUrl?: string;
+    imageUrl?: string;
+  };
+  valid_from?: string;
+  valid_until?: string;
 }
 
 // Types for Holiday products
 export interface HolidayProduct {
   id: string;
-  name: string;
+  name: string | { en?: string; de?: string; fr?: string; it?: string };
+  description?: string | { en?: string; de?: string; fr?: string; it?: string };
   category: string;
   duration: {
     days: number;
     nights?: number;
   };
   price: {
-    from: number;
+    base_chf: number;
     currency: string;
+    class_variants?: Array<{
+      class: string;
+      price_chf: number;
+      accommodation: string;
+    }>;
   };
-  region: string;
+  included?: string[];
+  region: string | string[];
   difficulty_level: string;
   highlights: string[];
+  best_for?: string[];
+  group_size?: {
+    min?: number;
+    recommended?: number;
+    max?: number;
+  };
+  media?: {
+    homepageUrl?: string;
+    imageUrl?: string;
+  };
+  booking_link?: string;
+  valid_until?: string;
 }
 
 // Types for RailAway products (simplified for display)
@@ -58,11 +93,9 @@ interface McpTravelSystemResponse {
 }
 
 interface McpHolidayResponse {
-  query: string;
-  filters: Record<string, unknown>;
-  results_count: number;
-  total_products: number;
+  count: number;
   results: HolidayProduct[];
+  total_available: number;
 }
 
 interface McpTravelSystemCategoriesResponse {
@@ -131,17 +164,12 @@ export async function searchHolidayProducts(params: {
   limit?: number;
   language?: string;
 } = {}): Promise<HolidayProduct[]> {
-  const result = await callTool<McpHolidayResponse>('tourism__search_holiday_products', {
-    query: params.query || '',
-    language: params.language || 'de',
-    category: params.category || '',
-    region: params.region || '',
-    max_price: params.max_price,
-    min_duration: params.min_duration,
-    max_duration: params.max_duration,
-    difficulty: params.difficulty || '',
-    best_for: params.best_for || '',
-    limit: params.limit || 50,
+  const result = await callTool<McpHolidayResponse>('tourism__search_all_products', {
+    text: params.query || '',
+    category: params.category || null,
+    region: params.region || null,
+    product_type: 'stc_package',
+    limit: Math.min(params.limit || 50, 50),
   });
 
   return result.results || [];

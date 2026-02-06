@@ -8,12 +8,18 @@ export interface RailAwayProduct {
   id?: string;
   title?: string | MultilingualText;
   description?: string | MultilingualText;
-  category?: RailAwayCategory;
+  category?: string;
   discount?: {
     type?: string;
-    value?: number;
+    value?: string | number;
     description?: string | MultilingualText;
   };
+  price?: {
+    from?: number;
+    to?: number;
+    currency?: string;
+  };
+  bookingUrl?: string;
   location?: {
     city?: string;
     region?: string;
@@ -23,7 +29,7 @@ export interface RailAwayProduct {
   visitInfo?: {
     recommendedDuration?: string;
     bestMonths?: string[];
-    accessibility?: string;
+    accessibility?: string | boolean;
   };
   targetAudience?: string[];
   bookingInfo?: {

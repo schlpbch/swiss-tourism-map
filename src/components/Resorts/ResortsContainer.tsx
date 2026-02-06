@@ -12,7 +12,7 @@ import { t } from '../../i18n';
 import { useLanguageStore } from '../../store/languageStore';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
 import { Spinner } from '@/components/ui/spinner';
@@ -24,6 +24,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { Label } from '@/components/ui/label';
+import { Separator } from '@/components/ui/separator';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
+import { AlertCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export default function ResortsContainer() {
@@ -202,10 +207,11 @@ export default function ResortsContainer() {
   if (error) {
     return (
       <div className="w-full h-screen flex items-center justify-center bg-[var(--background)]">
-        <Card className="text-center max-w-md p-6">
-          <div className="text-5xl mb-4 text-[var(--destructive)]">!</div>
-          <p className="text-sm text-[var(--muted-foreground)]">{error}</p>
-        </Card>
+        <Alert variant="destructive" className="max-w-md">
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>{t(language, 'error')}</AlertTitle>
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
       </div>
     );
   }
@@ -213,29 +219,32 @@ export default function ResortsContainer() {
   return (
     <div className="flex h-full">
       {/* Sidebar Filters */}
-      <div className="w-64 border-r p-6 overflow-y-auto bg-[var(--background)] border-[var(--border)]">
-        <h2 className="text-lg font-bold mb-4 text-[var(--foreground)]">
-          {t(language, 'common.filter')}
-        </h2>
+      <ScrollArea className="w-64 border-r bg-[var(--background)] border-[var(--border)]">
+        <div className="p-6">
+          <h2 className="text-lg font-bold mb-4 text-[var(--foreground)]">
+            {t(language, 'common.filter')}
+          </h2>
 
-        {/* Search */}
-        <div className="mb-6">
-          <label className="block text-sm font-medium mb-2 text-[var(--foreground)]">
-            {t(language, 'common.search')}
-          </label>
-          <Input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder={t(language, 'resorts.searchPlaceholder')}
-          />
-        </div>
+          {/* Search */}
+          <div className="mb-6">
+            <Label className="mb-2">
+              {t(language, 'common.search')}
+            </Label>
+            <Input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder={t(language, 'resorts.searchPlaceholder')}
+            />
+          </div>
 
-        {/* Seasons */}
-        <div className="mb-6">
-          <label className="block text-sm font-medium mb-2 text-[var(--foreground)]">
-            {t(language, 'map.seasons')}
-          </label>
+          <Separator className="mb-6" />
+
+          {/* Seasons */}
+          <div className="mb-6">
+            <Label className="mb-2">
+              {t(language, 'map.seasons')}
+            </Label>
           <div className="space-y-2">
             {(['winter', 'spring', 'summer', 'autumn'] as Season[]).map(season => {
               const isSelected = selectedSeasons.has(season);
@@ -270,11 +279,13 @@ export default function ResortsContainer() {
           </div>
         </div>
 
-        {/* Region Filter */}
-        <div className="mb-6">
-          <label className="block text-sm font-medium mb-2 text-[var(--foreground)]">
-            {t(language, 'common.region')}
-          </label>
+          <Separator className="mb-6" />
+
+          {/* Region Filter */}
+          <div className="mb-6">
+            <Label className="mb-2">
+              {t(language, 'common.region')}
+            </Label>
           <Select value={selectedRegion} onValueChange={setSelectedRegion}>
             <SelectTrigger className="w-full">
               <SelectValue />
@@ -290,165 +301,175 @@ export default function ResortsContainer() {
           </Select>
         </div>
 
-        {/* Elevation Filter */}
-        <div className="mb-6">
-          <label className="block text-sm font-medium mb-2 text-[var(--foreground)]">
-            {t(language, 'resorts.elevationRange', { min: elevationFilterMin, max: elevationFilterMax })}
-          </label>
-          <div className="space-y-3">
-            <div>
-              <label className="block text-xs mb-1 text-[var(--muted-foreground)]">
-                {t(language, 'resorts.minElevation', { min: elevationFilterMin })}
-              </label>
-              <Slider
-                value={[elevationFilterMin]}
-                min={minElevation}
-                max={maxElevation}
-                step={50}
-                onValueChange={([val]) => {
-                  if (val <= elevationFilterMax) {
-                    setElevationFilterMin(val);
-                  }
-                }}
-              />
-            </div>
-            <div>
-              <label className="block text-xs mb-1 text-[var(--muted-foreground)]">
-                {t(language, 'resorts.maxElevation', { max: elevationFilterMax })}
-              </label>
-              <Slider
-                value={[elevationFilterMax]}
-                min={minElevation}
-                max={maxElevation}
-                step={50}
-                onValueChange={([val]) => {
-                  if (val >= elevationFilterMin) {
-                    setElevationFilterMax(val);
-                  }
-                }}
-              />
+          <Separator className="mb-6" />
+
+          {/* Elevation Filter */}
+          <div className="mb-6">
+            <Label className="mb-2">
+              {t(language, 'resorts.elevationRange', { min: elevationFilterMin, max: elevationFilterMax })}
+            </Label>
+            <div className="space-y-3">
+              <div>
+                <Label className="text-xs text-[var(--muted-foreground)] mb-1">
+                  {t(language, 'resorts.minElevation', { min: elevationFilterMin })}
+                </Label>
+                <Slider
+                  value={[elevationFilterMin]}
+                  min={minElevation}
+                  max={maxElevation}
+                  step={50}
+                  onValueChange={([val]) => {
+                    if (val <= elevationFilterMax) {
+                      setElevationFilterMin(val);
+                    }
+                  }}
+                />
+              </div>
+              <div>
+                <Label className="text-xs text-[var(--muted-foreground)] mb-1">
+                  {t(language, 'resorts.maxElevation', { max: elevationFilterMax })}
+                </Label>
+                <Slider
+                  value={[elevationFilterMax]}
+                  min={minElevation}
+                  max={maxElevation}
+                  step={50}
+                  onValueChange={([val]) => {
+                    if (val >= elevationFilterMin) {
+                      setElevationFilterMax(val);
+                    }
+                  }}
+                />
+              </div>
             </div>
           </div>
-        </div>
 
-        {/* Distance Filter */}
-        <div className="mb-6">
-          <label className="block text-sm font-medium mb-2 text-[var(--foreground)]">
-            {t(language, 'resorts.proximity')}
-          </label>
-          <Button
-            variant={userLocation ? 'secondary' : 'outline'}
-            className="w-full mb-2"
-            onClick={() => {
-              setLocationError(null);
-              if ('geolocation' in navigator) {
-                navigator.geolocation.getCurrentPosition(
-                  (position) => {
-                    setUserLocation({
-                      lat: position.coords.latitude,
-                      lng: position.coords.longitude,
-                    });
-                    setLocationError(null);
-                  },
-                  () => {
-                    setLocationError(t(language, 'errors.geolocationFailed'));
-                    setUserLocation(null);
-                  }
+          <Separator className="mb-6" />
+
+          {/* Distance Filter */}
+          <div className="mb-6">
+            <Label className="mb-2">
+              {t(language, 'resorts.proximity')}
+            </Label>
+            <Button
+              variant={userLocation ? 'secondary' : 'outline'}
+              className="w-full mb-2"
+              onClick={() => {
+                setLocationError(null);
+                if ('geolocation' in navigator) {
+                  navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                      setUserLocation({
+                        lat: position.coords.latitude,
+                        lng: position.coords.longitude,
+                      });
+                      setLocationError(null);
+                    },
+                    () => {
+                      setLocationError(t(language, 'errors.geolocationFailed'));
+                      setUserLocation(null);
+                    }
+                  );
+                } else {
+                  setLocationError(t(language, 'errors.geolocationNotSupported'));
+                }
+              }}
+            >
+              {userLocation ? t(language, 'resorts.locationEnabled') : t(language, 'resorts.useMyLocation')}
+            </Button>
+            {locationError && (
+              <p className="text-xs mb-2 text-[var(--destructive)]">{locationError}</p>
+            )}
+            {userLocation && (
+              <div>
+                <Label className="text-xs text-[var(--muted-foreground)] mb-1">
+                  {t(language, 'resorts.radius', { distance: maxDistance })}
+                </Label>
+                <Slider
+                  value={[maxDistance]}
+                  min={1}
+                  max={500}
+                  step={10}
+                  onValueChange={([val]) => setMaxDistance(val)}
+                />
+                <p className="text-xs mt-2 text-[var(--muted-foreground)]">
+                  {t(language, 'resorts.filteringByDistance', { distance: maxDistance })}
+                </p>
+              </div>
+            )}
+          </div>
+
+          <Separator className="mb-6" />
+
+          {/* Activities Filter */}
+          <div className="mb-6">
+            <Label className="mb-2">
+              {t(language, 'resorts.activities')}
+            </Label>
+            <div className="space-y-2">
+              {RESORT_ACTIVITIES.map(activity => {
+                const isSelected = selectedActivities.has(activity);
+                return (
+                  <label
+                    key={activity}
+                    className={cn(
+                      'flex items-center gap-2 cursor-pointer px-2 py-1 rounded transition-colors',
+                      isSelected ? 'bg-[var(--muted)]' : 'hover:bg-[var(--muted)]'
+                    )}
+                  >
+                    <Checkbox
+                      checked={isSelected}
+                      onCheckedChange={() => {
+                        setSelectedActivities(prev => {
+                          const next = new Set(prev);
+                          if (next.has(activity)) {
+                            next.delete(activity);
+                          } else {
+                            next.add(activity);
+                          }
+                          return next;
+                        });
+                      }}
+                    />
+                    <span className="text-sm text-[var(--foreground)]">{activity}</span>
+                  </label>
                 );
-              } else {
-                setLocationError(t(language, 'errors.geolocationNotSupported'));
-              }
+              })}
+            </div>
+          </div>
+
+          <Separator className="mb-6" />
+
+          {/* Reset button */}
+          <Button
+            variant="outline"
+            className="w-full"
+            onClick={() => {
+              setSelectedSeasons(new Set(['winter', 'spring', 'summer', 'autumn']));
+              setSelectedRegion('all');
+              setSearchQuery('');
+              setElevationFilterMin(minElevation);
+              setElevationFilterMax(maxElevation);
+              setSortBy('name');
+              setUserLocation(null);
+              setMaxDistance(100);
+              setLocationError(null);
+              setSelectedActivities(new Set());
             }}
           >
-            {userLocation ? t(language, 'resorts.locationEnabled') : t(language, 'resorts.useMyLocation')}
+            {t(language, 'common.resetFilter')}
           </Button>
-          {locationError && (
-            <p className="text-xs mb-2 text-[var(--destructive)]">{locationError}</p>
-          )}
-          {userLocation && (
-            <div>
-              <label className="block text-xs mb-1 text-[var(--muted-foreground)]">
-                {t(language, 'resorts.radius', { distance: maxDistance })}
-              </label>
-              <Slider
-                value={[maxDistance]}
-                min={1}
-                max={500}
-                step={10}
-                onValueChange={([val]) => setMaxDistance(val)}
-              />
-              <p className="text-xs mt-2 text-[var(--muted-foreground)]">
-                {t(language, 'resorts.filteringByDistance', { distance: maxDistance })}
-              </p>
-            </div>
-          )}
-        </div>
 
-        {/* Activities Filter */}
-        <div className="mb-6">
-          <label className="block text-sm font-medium mb-2 text-[var(--foreground)]">
-            {t(language, 'resorts.activities')}
-          </label>
-          <div className="space-y-2">
-            {RESORT_ACTIVITIES.map(activity => {
-              const isSelected = selectedActivities.has(activity);
-              return (
-                <label
-                  key={activity}
-                  className={cn(
-                    'flex items-center gap-2 cursor-pointer px-2 py-1 rounded transition-colors',
-                    isSelected ? 'bg-[var(--muted)]' : 'hover:bg-[var(--muted)]'
-                  )}
-                >
-                  <Checkbox
-                    checked={isSelected}
-                    onCheckedChange={() => {
-                      setSelectedActivities(prev => {
-                        const next = new Set(prev);
-                        if (next.has(activity)) {
-                          next.delete(activity);
-                        } else {
-                          next.add(activity);
-                        }
-                        return next;
-                      });
-                    }}
-                  />
-                  <span className="text-sm text-[var(--foreground)]">{activity}</span>
-                </label>
-              );
-            })}
+          {/* Results count */}
+          <div className="mt-4 text-xs text-center text-[var(--muted-foreground)]">
+            {t(language, 'map.resortsCount', { count: filteredResorts.length })} / {resorts.length}
           </div>
         </div>
-
-        {/* Reset button */}
-        <Button
-          variant="outline"
-          className="w-full"
-          onClick={() => {
-            setSelectedSeasons(new Set(['winter', 'spring', 'summer', 'autumn']));
-            setSelectedRegion('all');
-            setSearchQuery('');
-            setElevationFilterMin(minElevation);
-            setElevationFilterMax(maxElevation);
-            setSortBy('name');
-            setUserLocation(null);
-            setMaxDistance(100);
-            setLocationError(null);
-            setSelectedActivities(new Set());
-          }}
-        >
-          {t(language, 'common.resetFilter')}
-        </Button>
-
-        {/* Results count */}
-        <div className="mt-4 text-xs text-center text-[var(--muted-foreground)]">
-          {t(language, 'map.resortsCount', { count: filteredResorts.length })} / {resorts.length}
-        </div>
-      </div>
+      </ScrollArea>
 
       {/* Main Content */}
-      <div className="flex-1 overflow-y-auto p-6">
+      <ScrollArea className="flex-1">
+        <div className="p-6">
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-2xl font-bold text-[var(--foreground)]">
             {t(language, 'resorts.title')}
@@ -479,7 +500,8 @@ export default function ResortsContainer() {
             ))}
           </div>
         )}
-      </div>
+        </div>
+      </ScrollArea>
     </div>
   );
 }
@@ -490,9 +512,11 @@ function ResortCard({ resort }: { resort: Resort }) {
   return (
     <Card className="overflow-hidden flex flex-col transition-all cursor-pointer hover:shadow-md">
       {/* Header */}
-      <div className="px-4 py-2 text-xs font-medium bg-[var(--sbb-color-orange-light)] text-white">
-        {t(language, 'resorts.alpineResort')}
-      </div>
+      <CardHeader className="px-4 py-2 bg-[var(--sbb-color-orange-light)] text-white">
+        <CardTitle className="text-xs font-medium">
+          {t(language, 'resorts.alpineResort')}
+        </CardTitle>
+      </CardHeader>
 
       {/* Content */}
       <CardContent className="p-4 flex-1 flex flex-col">
@@ -617,25 +641,25 @@ function ResortCard({ resort }: { resort: Resort }) {
             <div className="space-y-1">
               {resort.runs.beginner > 0 && (
                 <div className="flex items-center gap-2">
-                  <span className="text-xs px-2 rounded bg-green-500 text-white">
+                  <Badge variant="difficulty-easy" className="text-xs">
                     {t(language, 'resorts.beginner')}
-                  </span>
+                  </Badge>
                   <span className="text-xs text-[var(--muted-foreground)]">{resort.runs.beginner}</span>
                 </div>
               )}
               {resort.runs.intermediate > 0 && (
                 <div className="flex items-center gap-2">
-                  <span className="text-xs px-2 rounded bg-orange-500 text-white">
+                  <Badge variant="difficulty-moderate" className="text-xs">
                     {t(language, 'resorts.intermediate')}
-                  </span>
+                  </Badge>
                   <span className="text-xs text-[var(--muted-foreground)]">{resort.runs.intermediate}</span>
                 </div>
               )}
               {resort.runs.advanced > 0 && (
                 <div className="flex items-center gap-2">
-                  <span className="text-xs px-2 rounded bg-red-500 text-white">
+                  <Badge variant="difficulty-hard" className="text-xs">
                     {t(language, 'resorts.advanced')}
-                  </span>
+                  </Badge>
                   <span className="text-xs text-[var(--muted-foreground)]">{resort.runs.advanced}</span>
                 </div>
               )}

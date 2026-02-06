@@ -19,6 +19,8 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Spinner } from '@/components/ui/spinner';
+import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
+import { AlertCircle } from 'lucide-react';
 
 // Switzerland center coordinates
 const SWITZERLAND_CENTER: [number, number] = [46.8, 8.2];
@@ -142,16 +144,16 @@ export default function MapContainer() {
   if (error) {
     return (
       <div className="w-full h-full flex items-center justify-center bg-[var(--background)]">
-        <Card className="text-center max-w-md p-6">
-          <div className="text-5xl mb-4 text-[var(--destructive)]">⚠</div>
-          <h3 className="text-lg font-semibold mb-2 text-[var(--foreground)]">
-            {t(language, 'error')}
-          </h3>
-          <p className="mb-4 text-sm text-[var(--muted-foreground)]">{error}</p>
-          <Button onClick={() => window.location.reload()}>
-            {t(language, 'common.reload')}
-          </Button>
-        </Card>
+        <Alert variant="destructive" className="max-w-md">
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>{t(language, 'error')}</AlertTitle>
+          <AlertDescription className="mt-2">
+            <p className="mb-3">{error}</p>
+            <Button size="sm" onClick={() => window.location.reload()}>
+              {t(language, 'common.reload')}
+            </Button>
+          </AlertDescription>
+        </Alert>
       </div>
     );
   }
