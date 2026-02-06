@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { t, supportedLangs, type Lang } from '../../src/i18n/index';
+import type { I18nKey } from '../../src/i18n/keys';
 
 describe('i18n product keys consistency', () => {
   const productKeys = [
@@ -37,7 +38,7 @@ describe('i18n product keys consistency', () => {
   for (const lang of supportedLangs) {
     it(`all product keys exist in ${lang}`, () => {
       for (const key of productKeys) {
-        const value = t(lang as Lang, key);
+        const value = t(lang as Lang, key as I18nKey);
         expect(value, `Missing key "${key}" in ${lang}`).not.toBe(key);
         expect(value.length, `Empty value for "${key}" in ${lang}`).toBeGreaterThan(0);
       }
@@ -73,7 +74,7 @@ describe('i18n product keys consistency', () => {
   for (const lang of supportedLangs) {
     it(`all common keys exist in ${lang}`, () => {
       for (const key of commonKeys) {
-        const value = t(lang as Lang, key);
+        const value = t(lang as Lang, key as I18nKey);
         expect(value, `Missing key "${key}" in ${lang}`).not.toBe(key);
       }
     });

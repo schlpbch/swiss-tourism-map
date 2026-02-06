@@ -38,7 +38,9 @@ test.describe('Multilingual Support (i18n)', () => {
     await page.goto('/');
 
     const header = page.locator('header h1').first();
-    const tagline = page.locator('header p').filter({ hasText: /erkunden|Explore|Découvrir|Scopri|खोज|探索/ });
+    const tagline = page
+      .locator('header p')
+      .filter({ hasText: /erkunden|Explore|Découvrir|Scopri|खोज|探索/ });
     const select = page.locator('select[aria-label="Language selection"]');
 
     // Test all six languages
@@ -106,18 +108,14 @@ test.describe('Multilingual Support (i18n)', () => {
     await expect(header).toContainText(translations.zh.title);
 
     // Check computed font family includes CJK font
-    const fontFamily = await header.evaluate((el) =>
-      window.getComputedStyle(el).fontFamily
-    );
+    const fontFamily = await header.evaluate((el) => window.getComputedStyle(el).fontFamily);
     expect(fontFamily.toLowerCase()).toContain('noto sans sc');
 
     // Test Hindi
     await page.goto('/?lang=hi');
     await expect(header).toContainText(translations.hi.title);
 
-    const hindiFontFamily = await header.evaluate((el) =>
-      window.getComputedStyle(el).fontFamily
-    );
+    const hindiFontFamily = await header.evaluate((el) => window.getComputedStyle(el).fontFamily);
     expect(hindiFontFamily.toLowerCase()).toContain('noto sans devanagari');
   });
 });

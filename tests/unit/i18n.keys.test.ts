@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { supportedLangs, hasKey, t } from '../../src/i18n/index';
+import type { I18nKey } from '../../src/i18n/keys';
 
 describe('i18n translation files', () => {
   it('each supported language contains required keys', () => {
@@ -17,7 +18,7 @@ describe('i18n translation files', () => {
 
     for (const lang of supportedLangs) {
       for (const key of navKeys) {
-        const value = t(lang as any, key);
+        const value = t(lang as any, key as I18nKey);
         expect(value).not.toBe(key); // Should be translated, not just return the key
         expect(value.length).toBeGreaterThan(0);
       }

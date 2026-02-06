@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { t, supportedLangs } from '../../src/i18n/index';
+import type { I18nKey } from '../../src/i18n/keys';
 
 describe('i18n fallback and supported languages', () => {
   it('supports expected languages', () => {
@@ -15,7 +16,7 @@ describe('i18n fallback and supported languages', () => {
   });
 
   it('returns key when missing in both target and english', () => {
-    const key = 'definitely_missing_key_xyz';
-    expect(t('fr' as any, key)).toBe(key);
+    const key = 'definitely_missing_key_xyz' as I18nKey;
+    expect(t('fr', key)).toBe(key);
   });
 });
