@@ -51,15 +51,15 @@ export const SIGHT_CATEGORIES = [
   'zoo',
 ] as const;
 
-export type SightCategory = typeof SIGHT_CATEGORIES[number];
+export type SightCategory = (typeof SIGHT_CATEGORIES)[number];
 
 /**
  * Prominence tiers
  */
 export const PROMINENCE_TIERS = {
-  'iconic': { min: 90, max: 100, label: 'Ikonisch', color: '#EF4444' },
-  'major': { min: 70, max: 89, label: 'Bedeutend', color: '#F59E0B' },
-  'notable': { min: 40, max: 69, label: 'Bemerkenswert', color: '#3B82F6' },
+  iconic: { min: 90, max: 100, label: 'Ikonisch', color: '#EF4444' },
+  major: { min: 70, max: 89, label: 'Bedeutend', color: '#F59E0B' },
+  notable: { min: 40, max: 69, label: 'Bemerkenswert', color: '#3B82F6' },
   'hidden-gem': { min: 0, max: 39, label: 'Geheimtipp', color: '#6B7280' },
 } as const;
 

@@ -18,9 +18,7 @@ export function filterSightsByProminence(
     return sights;
   }
 
-  return sights.filter(sight =>
-    sight.prominence && selectedTiers.has(sight.prominence.tier)
-  );
+  return sights.filter((sight) => sight.prominence && selectedTiers.has(sight.prominence.tier));
 }
 
 /**
@@ -28,13 +26,13 @@ export function filterSightsByProminence(
  */
 export function countSightsByTier(sights: Sight[]): Record<ProminenceTier, number> {
   const counts: Record<ProminenceTier, number> = {
-    'iconic': 0,
-    'major': 0,
-    'notable': 0,
+    iconic: 0,
+    major: 0,
+    notable: 0,
     'hidden-gem': 0,
   };
 
-  sights.forEach(sight => {
+  sights.forEach((sight) => {
     if (sight.prominence?.tier) {
       counts[sight.prominence.tier]++;
     }
@@ -64,9 +62,9 @@ export function getMarkerColorName(tier?: ProminenceTier): string {
   if (!tier) return 'blue';
 
   const colorMap: Record<ProminenceTier, string> = {
-    'iconic': 'red',
-    'major': 'orange',
-    'notable': 'blue',
+    iconic: 'red',
+    major: 'orange',
+    notable: 'blue',
     'hidden-gem': 'grey',
   };
 

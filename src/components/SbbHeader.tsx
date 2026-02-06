@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useLanguageStore } from '../store/languageStore';
 import { t, languageNames, supportedLangs } from '../i18n';
 import type { Lang } from '../i18n';
+import type { I18nKey } from '../i18n/keys';
 import { Button } from '@/components/ui/button';
 import {
   Select,
@@ -10,18 +11,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-} from '@/components/ui/sheet';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 import { Menu } from 'lucide-react';
 
@@ -29,7 +20,7 @@ interface SbbHeaderProps {
   onLanguageChange?: (lang: string) => void;
 }
 
-const navItems = [
+const navItems: { href: string; key: I18nKey }[] = [
   { href: '/', key: 'nav.map' },
   { href: '/sights', key: 'nav.sights' },
   { href: '/resorts', key: 'nav.resorts' },
@@ -56,11 +47,7 @@ export default function SbbHeader({ onLanguageChange }: SbbHeaderProps) {
     <header className="w-full border-b bg-[var(--card)] border-[var(--border)]">
       <div className="px-4 md:px-8 py-3 flex items-center justify-between">
         {/* Left: Logo and Title */}
-        <a
-          href="/"
-          className="flex items-center gap-3 no-underline group"
-          aria-label="Homepage"
-        >
+        <a href="/" className="flex items-center gap-3 no-underline group" aria-label="Homepage">
           <div className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0 transition-all bg-[var(--background)]">
             <svg
               width="24"

@@ -4,7 +4,7 @@
 
 import { callTool } from './mcp-client';
 import type { Sight } from '../types/sight';
-import type { Language } from '../types/common';
+import type { Lang } from '../types/common';
 
 export interface SightsSearchParams {
   query?: string;
@@ -15,7 +15,7 @@ export interface SightsSearchParams {
   max_prominence?: number;
   prominence_tier?: string; // 'iconic' | 'major' | 'notable' | 'hidden-gem'
   limit?: number;
-  language?: Language;
+  language?: Lang;
 }
 
 interface McpSightsResponse {
@@ -46,7 +46,7 @@ export async function searchSights(params: SightsSearchParams = {}): Promise<Sig
 /**
  * Get a single sight by ID via MCP
  */
-export async function getSight(id: string, language: Language = 'de'): Promise<Sight> {
+export async function getSight(id: string, language: Lang = 'de'): Promise<Sight> {
   const result = await callTool<{ sight: Sight }>('tourism__get_sight_by_id', {
     sight_id: id,
     language,
@@ -70,7 +70,7 @@ export async function searchSightsNear(
   longitude: number,
   radiusKm: number = 50,
   limit: number = 50,
-  language: Language = 'de'
+  language: Lang = 'de'
 ): Promise<Sight[]> {
   const result = await callTool<McpNearLocationResponse>('tourism__find_sights_near_location', {
     latitude,
@@ -100,8 +100,8 @@ export async function getSightTags(): Promise<string[]> {
   // Tags are part of the sight search, get them from a sample search
   const sights = await searchSights({ limit: 100 });
   const tagsSet = new Set<string>();
-  sights.forEach(sight => {
-    sight.tags?.forEach(tag => tagsSet.add(tag));
+  sights.forEach((sight) => {
+    sight.tags?.forEach((tag) => tagsSet.add(tag));
   });
   return Array.from(tagsSet).sort();
 }

@@ -4,6 +4,7 @@
 
 import { useEffect, useState, useMemo, useCallback } from 'react';
 import { MapContainer as LeafletMapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import MarkerClusterGroup from 'react-leaflet-cluster';
 import { Icon } from 'leaflet';
 import type { Sight, ProminenceTier } from '../../types/sight';
 import type { Resort } from '../../types/resort';
@@ -19,9 +20,11 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Spinner } from '@/components/ui/spinner';
 import FullPageError from '../FullPageError';
 import CardActionFooter from '../CardActionFooter';
 import BadgeList from '../BadgeList';
+import { retryAsync } from '../../utils/retry';
 
 // Switzerland center coordinates
 const SWITZERLAND_CENTER: [number, number] = [46.8, 8.2];
@@ -37,18 +40,19 @@ function createProminenceIcon(tier?: ProminenceTier): Icon {
     iconSize: [25, 41],
     iconAnchor: [12, 41],
     popupAnchor: [1, -34],
-    shadowSize: [41, 41]
+    shadowSize: [41, 41],
   });
 }
 
 // Resort marker icon (orange)
 const resortIcon = new Icon({
-  iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-orange.png',
+  iconUrl:
+    'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-orange.png',
   shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
   iconSize: [25, 41],
   iconAnchor: [12, 41],
   popupAnchor: [1, -34],
-  shadowSize: [41, 41]
+  shadowSize: [41, 41],
 });
 
 export default function MapContainer() {
@@ -101,7 +105,14 @@ export default function MapContainer() {
         setLoading(true);
         setError(null);
 
-        await initializeMcp();
+        // Initialize MCP with retry logic
+        await retryAsync(() => initializeMcp(), {
+          maxRetries: 3,
+          delayMs: 1000,
+          onRetry: (attempt) => {
+            console.warn(`[MapContainer] MCP initialization retry attempt ${attempt}/3`);
+          },
+        });
 
         const [sightsData, resortsData] = await Promise.all([
           searchSights({ limit: 1000, language: 'de' }),
@@ -152,114 +163,127 @@ export default function MapContainer() {
   }
 
   return (
-    <div className="w-full h-full">
+    <div
+      className="w-full h-full"
+      role="main"
+      aria-label="Interactive map of Swiss tourism locations"
+    >
       <LeafletMapContainer
         center={SWITZERLAND_CENTER}
         zoom={DEFAULT_ZOOM}
         className="w-full h-full"
+        aria-label="Map showing Swiss sights and resorts"
       >
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
 
-        {/* Sight markers */}
-        {displayedSights.map((sight) => (
-          <Marker
-            key={sight.id}
-            position={[sight.location.latitude, sight.location.longitude]}
-            icon={createProminenceIcon(sight.prominence?.tier)}
-          >
-            <Popup>
-              <div className="p-3 min-w-70">
-                <h3 className="font-bold text-base mb-1 text-[var(--primary)]">
-                  {sight.title}
-                </h3>
+        {/* Clustered markers for better performance */}
+        <MarkerClusterGroup
+          chunkedLoading
+          maxClusterRadius={60}
+          spiderfyOnMaxZoom={true}
+          showCoverageOnHover={false}
+          zoomToBoundsOnClick={true}
+        >
+          {/* Sight markers */}
+          {displayedSights.map((sight) => (
+            <Marker
+              key={sight.id}
+              position={[sight.location.latitude, sight.location.longitude]}
+              icon={createProminenceIcon(sight.prominence?.tier)}
+            >
+              <Popup>
+                <div className="p-3 min-w-70">
+                  <h3 className="font-bold text-base mb-1 text-[var(--primary)]">{sight.title}</h3>
 
-                {sight.region && (
-                  <p className="text-xs mb-2 text-[var(--muted-foreground)]">
-                    {sight.region}
+                  {sight.region && (
+                    <p className="text-xs mb-2 text-[var(--muted-foreground)]">{sight.region}</p>
+                  )}
+
+                  <p className="text-xs mb-3 text-[var(--muted-foreground)]">
+                    {sight.category.join(', ')}
                   </p>
-                )}
 
-                <p className="text-xs mb-3 text-[var(--muted-foreground)]">
-                  {sight.category.join(', ')}
-                </p>
-
-                <p className="text-sm leading-relaxed mb-3 text-[var(--foreground)]">
-                  {sight.description}
-                </p>
-
-                {sight.prominence && (
-                  <div className="mb-3">
-                    <Badge variant="secondary">
-                      {sight.prominence.tier} - {sight.prominence.score}/100
-                    </Badge>
-                  </div>
-                )}
-
-                {sight.tags && sight.tags.length > 0 && (
-                  <BadgeList items={sight.tags} variant="outline" maxVisible={4} className="mt-2" />
-                )}
-
-                {/* Action Links */}
-                <CardActionFooter
-                  externalUrl={sight.website || sight.url}
-                  internalHref="/products"
-                  internalLabel={t(language, 'nav.products')}
-                  className="mt-4 pt-3"
-                />
-              </div>
-            </Popup>
-          </Marker>
-        ))}
-
-        {/* Resort markers */}
-        {resorts.map((resort) => (
-          <Marker
-            key={resort.name}
-            position={[resort.coordinates.latitude, resort.coordinates.longitude]}
-            icon={resortIcon}
-          >
-            <Popup>
-              <div className="p-3 min-w-70">
-                <h3 className="font-bold text-base mb-1 text-[var(--primary)]">
-                  {resort.name}
-                </h3>
-
-                <div className="mb-2 text-xs space-y-1 text-[var(--muted-foreground)]">
-                  <p>{resort.region}</p>
-                  <p>{t(language, 'map.elevation', { elevation: resort.elevation })}</p>
-                </div>
-
-                <div className="mb-3 border-t pt-2 border-[var(--border)]">
-                  <p className="text-xs font-semibold mb-1 text-[var(--foreground)]">
-                    {t(language, 'map.seasons')}:
+                  <p className="text-sm leading-relaxed mb-3 text-[var(--foreground)]">
+                    {sight.description}
                   </p>
-                  <div className="flex flex-wrap gap-1">
-                    {resort.seasons.map((season) => (
-                      <Badge key={season} variant="resort">
-                        {t(language, `seasons.${season}`)}
+
+                  {sight.prominence && (
+                    <div className="mb-3">
+                      <Badge variant="secondary">
+                        {sight.prominence.tier} - {sight.prominence.score}/100
                       </Badge>
-                    ))}
-                  </div>
+                    </div>
+                  )}
+
+                  {sight.tags && sight.tags.length > 0 && (
+                    <BadgeList
+                      items={sight.tags}
+                      variant="outline"
+                      maxVisible={4}
+                      className="mt-2"
+                    />
+                  )}
+
+                  {/* Action Links */}
+                  <CardActionFooter
+                    externalUrl={sight.website || sight.url}
+                    internalHref="/products"
+                    internalLabel={t(language, 'nav.products')}
+                    className="mt-4 pt-3"
+                  />
                 </div>
+              </Popup>
+            </Marker>
+          ))}
 
-                <p className="text-xs text-[var(--muted-foreground)]">
-                  {t(language, 'resorts.alpineResort')}
-                </p>
+          {/* Resort markers */}
+          {resorts.map((resort) => (
+            <Marker
+              key={resort.name}
+              position={[resort.coordinates.latitude, resort.coordinates.longitude]}
+              icon={resortIcon}
+            >
+              <Popup>
+                <div className="p-3 min-w-70">
+                  <h3 className="font-bold text-base mb-1 text-[var(--primary)]">{resort.name}</h3>
 
-                {/* Action Links */}
-                <CardActionFooter
-                  externalUrl={resort.website || resort.url}
-                  internalHref="/products"
-                  internalLabel={t(language, 'nav.products')}
-                  className="mt-4 pt-2"
-                />
-              </div>
-            </Popup>
-          </Marker>
-        ))}
+                  <div className="mb-2 text-xs space-y-1 text-[var(--muted-foreground)]">
+                    <p>{resort.region}</p>
+                    <p>{t(language, 'map.elevation', { elevation: resort.elevation })}</p>
+                  </div>
+
+                  <div className="mb-3 border-t pt-2 border-[var(--border)]">
+                    <p className="text-xs font-semibold mb-1 text-[var(--foreground)]">
+                      {t(language, 'map.seasons')}:
+                    </p>
+                    <div className="flex flex-wrap gap-1">
+                      {resort.seasons.map((season) => (
+                        <Badge key={season} variant="resort">
+                          {t(language, `seasons.${season}`)}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+
+                  <p className="text-xs text-[var(--muted-foreground)]">
+                    {t(language, 'resorts.alpineResort')}
+                  </p>
+
+                  {/* Action Links */}
+                  <CardActionFooter
+                    externalUrl={resort.website || resort.url}
+                    internalHref="/products"
+                    internalLabel={t(language, 'nav.products')}
+                    className="mt-4 pt-2"
+                  />
+                </div>
+              </Popup>
+            </Marker>
+          ))}
+        </MarkerClusterGroup>
       </LeafletMapContainer>
 
       {/* Prominence filter overlay */}
@@ -289,7 +313,10 @@ export default function MapContainer() {
           <div className="flex items-center gap-2">
             <span className="w-3 h-3 rounded-full bg-sky-400" />
             <span className="text-[var(--foreground)]">
-              {t(language, 'map.sightsCount', { displayed: displayedSights.length, total: allSights.length })}
+              {t(language, 'map.sightsCount', {
+                displayed: displayedSights.length,
+                total: allSights.length,
+              })}
             </span>
           </div>
           <div className="flex items-center gap-2">

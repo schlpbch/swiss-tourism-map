@@ -2,11 +2,15 @@
  * Common type definitions for Swiss Tourism Map application
  */
 
+import type { Lang } from '../i18n';
+
 export interface MultilingualText {
   en?: string;
   de?: string;
   fr?: string;
   it?: string;
+  hi?: string;
+  zh?: string;
 }
 
 export interface Location {
@@ -55,14 +59,12 @@ export interface VisitorSupport {
  */
 export function getLocalizedText(
   text: MultilingualText | string | undefined,
-  language: 'de' | 'en' | 'fr' | 'it' = 'de'
+  language: Lang = 'de'
 ): string {
   if (!text) return '';
   if (typeof text === 'string') return text;
-  return text[language] || text.de || text.en || text.fr || text.it || '';
+  return text[language] || text.de || text.en || text.fr || text.it || text.hi || text.zh || '';
 }
 
-/**
- * Language type
- */
-export type Language = 'de' | 'en' | 'fr' | 'it';
+// Re-export Lang type for convenience
+export type { Lang };

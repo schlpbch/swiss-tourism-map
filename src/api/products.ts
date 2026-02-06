@@ -119,15 +119,17 @@ interface McpHolidayCategoriesResponse {
 /**
  * Search Travel System products via MCP
  */
-export async function searchTravelSystem(params: {
-  query?: string;
-  category?: string;
-  max_price?: number;
-  min_days?: number;
-  max_days?: number;
-  limit?: number;
-  language?: string;
-} = {}): Promise<TravelSystemProduct[]> {
+export async function searchTravelSystem(
+  params: {
+    query?: string;
+    category?: string;
+    max_price?: number;
+    min_days?: number;
+    max_days?: number;
+    limit?: number;
+    language?: string;
+  } = {}
+): Promise<TravelSystemProduct[]> {
   const result = await callTool<McpTravelSystemResponse>('tourism__search_travel_system', {
     query: params.query || '',
     language: params.language || 'de',
@@ -145,25 +147,30 @@ export async function searchTravelSystem(params: {
  * Get Travel System categories via MCP
  */
 export async function getTravelSystemCategories(): Promise<string[]> {
-  const result = await callTool<McpTravelSystemCategoriesResponse>('tourism__get_travel_system_categories', {});
-  return result.categories?.map(c => c.category) || [];
+  const result = await callTool<McpTravelSystemCategoriesResponse>(
+    'tourism__get_travel_system_categories',
+    {}
+  );
+  return result.categories?.map((c) => c.category) || [];
 }
 
 /**
  * Search Holiday products via MCP
  */
-export async function searchHolidayProducts(params: {
-  query?: string;
-  category?: string;
-  region?: string;
-  max_price?: number;
-  min_duration?: number;
-  max_duration?: number;
-  difficulty?: string;
-  best_for?: string;
-  limit?: number;
-  language?: string;
-} = {}): Promise<HolidayProduct[]> {
+export async function searchHolidayProducts(
+  params: {
+    query?: string;
+    category?: string;
+    region?: string;
+    max_price?: number;
+    min_duration?: number;
+    max_duration?: number;
+    difficulty?: string;
+    best_for?: string;
+    limit?: number;
+    language?: string;
+  } = {}
+): Promise<HolidayProduct[]> {
   const result = await callTool<McpHolidayResponse>('tourism__search_all_products', {
     text: params.query || '',
     category: params.category || null,
@@ -179,6 +186,9 @@ export async function searchHolidayProducts(params: {
  * Get Holiday product categories via MCP
  */
 export async function getHolidayCategories(): Promise<string[]> {
-  const result = await callTool<McpHolidayCategoriesResponse>('tourism__get_holiday_product_categories', {});
-  return result.categories?.map(c => c.category) || [];
+  const result = await callTool<McpHolidayCategoriesResponse>(
+    'tourism__get_holiday_product_categories',
+    {}
+  );
+  return result.categories?.map((c) => c.category) || [];
 }

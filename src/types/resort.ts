@@ -18,7 +18,8 @@ export interface Resort {
   // Phase 2: Enhanced details
   description?: string; // Resort description text
   activities?: string[]; // Available activities (e.g., 'Skiing', 'Hiking')
-  seasonDetails?: { // Enhanced season information
+  seasonDetails?: {
+    // Enhanced season information
     winter?: WinterSeason;
     spring?: SpringSeason;
     summer?: SummerSeason;
@@ -89,4 +90,4 @@ export const RESORT_ACTIVITIES = [
   'Paragliding',
 ] as const;
 
-export type ResortActivity = typeof RESORT_ACTIVITIES[number];
+export type ResortActivity = (typeof RESORT_ACTIVITIES)[number];

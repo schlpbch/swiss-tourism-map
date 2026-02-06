@@ -6,6 +6,7 @@
 import React from 'react';
 import type { ProminenceTier } from '../../types/sight';
 import { t } from '../../i18n';
+import type { I18nKey } from '../../i18n/keys';
 import { useLanguageStore } from '../../store/languageStore';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -28,9 +29,9 @@ interface ProminenceFilterProps {
 const tiers: ProminenceTier[] = ['iconic', 'major', 'notable', 'hidden-gem'];
 
 const tierBadgeVariant: Record<ProminenceTier, 'iconic' | 'major' | 'notable' | 'hidden'> = {
-  'iconic': 'iconic',
-  'major': 'major',
-  'notable': 'notable',
+  iconic: 'iconic',
+  major: 'major',
+  notable: 'notable',
   'hidden-gem': 'hidden',
 };
 
@@ -49,10 +50,10 @@ function ProminenceFilter({
 
   // Get tier label from i18n
   const getTierLabel = (tier: ProminenceTier): string => {
-    const tierKeys: Record<ProminenceTier, string> = {
-      'iconic': 'prominence.iconic',
-      'major': 'prominence.major',
-      'notable': 'prominence.notable',
+    const tierKeys: Record<ProminenceTier, I18nKey> = {
+      iconic: 'prominence.iconic',
+      major: 'prominence.major',
+      notable: 'prominence.notable',
       'hidden-gem': 'prominence.hiddenGem',
     };
     return t(language, tierKeys[tier]);
@@ -84,8 +85,8 @@ function ProminenceFilter({
             </div>
             <ChevronDown
               className={cn(
-                "h-4 w-4 text-[var(--muted-foreground)] transition-transform",
-                isExpanded && "rotate-180"
+                'h-4 w-4 text-[var(--muted-foreground)] transition-transform',
+                isExpanded && 'rotate-180'
               )}
             />
           </div>
@@ -103,9 +104,15 @@ function ProminenceFilter({
                   e.stopPropagation();
                   onToggleAll();
                 }}
-                aria-label={allSelected || noneSelected ? t(language, 'prominence.selectAllTiers') : t(language, 'prominence.deselectAllTiers')}
+                aria-label={
+                  allSelected || noneSelected
+                    ? t(language, 'prominence.selectAllTiers')
+                    : t(language, 'prominence.deselectAllTiers')
+                }
               >
-                {allSelected || noneSelected ? t(language, 'common.selectAll') : t(language, 'common.deselectAll')}
+                {allSelected || noneSelected
+                  ? t(language, 'common.selectAll')
+                  : t(language, 'common.deselectAll')}
               </Button>
             </div>
 
@@ -120,8 +127,8 @@ function ProminenceFilter({
                   <label
                     key={tier}
                     className={cn(
-                      "flex items-center gap-3 px-3 py-2 rounded cursor-pointer transition-colors",
-                      isSelected ? "bg-[var(--muted)]" : "hover:bg-[var(--muted)]"
+                      'flex items-center gap-3 px-3 py-2 rounded cursor-pointer transition-colors',
+                      isSelected ? 'bg-[var(--muted)]' : 'hover:bg-[var(--muted)]'
                     )}
                     onClick={(e) => e.stopPropagation()}
                   >

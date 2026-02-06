@@ -43,16 +43,16 @@ export interface RailAwayProduct {
  * RailAway product categories
  */
 export const RAILAWAY_CATEGORIES = [
-  'Animal\'n\'Rail',
-  'Art\'n\'Rail',
-  'Culture\'n\'Rail',
-  'Family\'n\'Rail',
-  'Mountain\'n\'Rail',
-  'Museum\'n\'Rail',
-  'Nature\'n\'Rail',
-  'Sport\'n\'Rail',
-  'Water\'n\'Rail',
-  'Wellness\'n\'Rail',
+  "Animal'n'Rail",
+  "Art'n'Rail",
+  "Culture'n'Rail",
+  "Family'n'Rail",
+  "Mountain'n'Rail",
+  "Museum'n'Rail",
+  "Nature'n'Rail",
+  "Sport'n'Rail",
+  "Water'n'Rail",
+  "Wellness'n'Rail",
 ] as const;
 
-export type RailAwayCategory = typeof RAILAWAY_CATEGORIES[number];
+export type RailAwayCategory = (typeof RAILAWAY_CATEGORIES)[number];

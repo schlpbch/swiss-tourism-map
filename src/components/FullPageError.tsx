@@ -15,7 +15,12 @@ export default function FullPageError({ error, onRetry, className }: FullPageErr
   const { language } = useLanguageStore();
 
   return (
-    <div className={cn('w-full h-full flex items-center justify-center bg-[var(--background)]', className)}>
+    <div
+      className={cn(
+        'w-full h-full flex items-center justify-center bg-[var(--background)]',
+        className
+      )}
+    >
       <Alert variant="destructive" className="max-w-md">
         <AlertCircle className="h-4 w-4" />
         <AlertTitle>{t(language, 'error')}</AlertTitle>

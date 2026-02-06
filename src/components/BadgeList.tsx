@@ -24,11 +24,11 @@ export default function BadgeList({
   return (
     <div className={cn('flex flex-wrap gap-1', className)}>
       {visible.map((item, i) => (
-        <Badge key={i} variant={variant}>{item}</Badge>
+        <Badge key={i} variant={variant}>
+          {item}
+        </Badge>
       ))}
-      {showOverflow && overflow > 0 && (
-        <Badge variant={variant}>+{overflow}</Badge>
-      )}
+      {showOverflow && overflow > 0 && <Badge variant={variant}>+{overflow}</Badge>}
     </div>
   );
 }

@@ -7,10 +7,10 @@
   --sbb-animation-duration-2x: 0.08s;
   --sbb-animation-duration-3x: 0.12s;
   --sbb-animation-duration-4x: 0.16s;
-  --sbb-animation-duration-5x: 0.20s;
+  --sbb-animation-duration-5x: 0.2s;
   --sbb-animation-duration-6x: 0.24s;
   --sbb-animation-duration-12x: 0.48s;
-  --sbb-animation-easing: cubic-bezier(.47, .1, 1, .63);
+  --sbb-animation-easing: cubic-bezier(0.47, 0.1, 1, 0.63);
   /**
    * Original Value: 1px
    */
@@ -620,7 +620,7 @@
    * Original Value: 120px
    */
   --sbb-spacing-responsive-xxl-ultra: 7.5rem;
-  --sbb-typo-font-family: "SBB", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --sbb-typo-font-family: 'SBB', 'Helvetica Neue', Helvetica, Arial, sans-serif;
   --sbb-typo-letter-spacing-heading: 0em;
   --sbb-typo-letter-spacing-text: 0.03em;
   --sbb-typo-line-height-heading: 1.4;

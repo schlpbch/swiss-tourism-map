@@ -16,7 +16,7 @@ interface Props {
 const {
   title = 'Schweizer Tourismus Karte',
   description = 'Interaktive Karte mit Sehenswürdigkeiten, Resorts und Produkten der Schweiz',
-  lang = 'de'
+  lang = 'de',
 } = Astro.props;
 ---
 
@@ -30,15 +30,8 @@ const {
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 
     <!-- SBB Web Font -->
-    <link
-      rel="preconnect"
-      href="https://cdn.app.sbb.ch"
-      crossorigin="anonymous"
-    />
-    <link
-      rel="stylesheet"
-      href="https://cdn.app.sbb.ch/fonts/SBBWeb/SBBWeb.css"
-    />
+    <link rel="preconnect" href="https://cdn.app.sbb.ch" crossorigin="anonymous" />
+    <link rel="stylesheet" href="https://cdn.app.sbb.ch/fonts/SBBWeb/SBBWeb.css" />
 
     <!-- Fonts for CJK (Chinese) and Devanagari (Hindi) -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -48,10 +41,24 @@ const {
       rel="stylesheet"
     />
 
+    <!-- Preload Leaflet CSS for map page performance -->
+    <link rel="preload" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" as="style" />
+    <link
+      rel="preload"
+      href="https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png"
+      as="image"
+    />
+
     <title>{title}</title>
   </head>
   <body>
-    <div id="app" class="h-screen w-screen overflow-hidden">
+    <a
+      href="#main-content"
+      class="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-[9999] focus:bg-[var(--primary)] focus:text-white focus:px-4 focus:py-2 focus:rounded"
+    >
+      Skip to main content
+    </a>
+    <div id="app" dir="auto" class="h-screen w-screen overflow-hidden">
       <slot />
     </div>
   </body>

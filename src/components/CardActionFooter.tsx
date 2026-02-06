@@ -28,9 +28,7 @@ export default function CardActionFooter({
         </Button>
       )}
       <Button asChild size="sm" className="flex-1">
-        <a href={internalHref}>
-          {internalLabel}
-        </a>
+        <a href={internalHref}>{internalLabel}</a>
       </Button>
     </div>
   );

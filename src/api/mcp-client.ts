@@ -3,11 +3,11 @@
  * Uses Streamable HTTP transport (JSON-RPC over HTTP with SSE)
  */
 
+import { getValidatedEnv } from '../utils/env';
+
 // Use local proxy in development to avoid CORS issues
 // In production, use the direct URL or configure your server to proxy
-const MCP_SERVER_URL = import.meta.env.DEV
-  ? '/mcp'  // Proxied through Vite dev server
-  : (import.meta.env.PUBLIC_MCP_SERVER_URL || 'https://swiss-tourism-mcp.fastmcp.app/mcp');
+const { MCP_SERVER_URL } = getValidatedEnv();
 
 interface JsonRpcRequest {
   jsonrpc: '2.0';
@@ -57,7 +57,7 @@ async function sendRequest<T>(method: string, params?: Record<string, unknown>):
 
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
-    'Accept': 'application/json, text/event-stream',
+    Accept: 'application/json, text/event-stream',
   };
 
   if (sessionId) {
@@ -84,7 +84,7 @@ async function sendRequest<T>(method: string, params?: Record<string, unknown>):
       return handleSseResponse<T>(response);
     } else {
       // Handle regular JSON response
-      const data = await response.json() as JsonRpcResponse<T>;
+      const data = (await response.json()) as JsonRpcResponse<T>;
 
       if (data.error) {
         throw new Error(`MCP Error: ${data.error.message}`);
@@ -93,7 +93,14 @@ async function sendRequest<T>(method: string, params?: Record<string, unknown>):
       return data.result as T;
     }
   } catch (error) {
-    throw error;
+    console.error('[MCP Client] Request failed:', {
+      method,
+      params,
+      error: error instanceof Error ? error.message : String(error),
+    });
+    throw new Error(
+      `MCP request failed (${method}): ${error instanceof Error ? error.message : 'Unknown error'}`
+    );
   }
 }
 
@@ -164,7 +171,7 @@ async function sendNotification(method: string, params?: Record<string, unknown>
 
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
-    'Accept': 'application/json, text/event-stream',
+    Accept: 'application/json, text/event-stream',
   };
 
   if (sessionId) {
@@ -197,14 +204,20 @@ export async function initializeMcp(): Promise<void> {
     // Send initialized notification (no response expected)
     await sendNotification('notifications/initialized', {});
   } catch (error) {
-    throw error;
+    console.error('[MCP Client] Initialization failed:', error);
+    throw new Error(
+      `Failed to initialize MCP connection: ${error instanceof Error ? error.message : 'Unknown error'}`
+    );
   }
 }
 
 /**
  * Call an MCP tool
  */
-export async function callTool<T = unknown>(name: string, args: Record<string, unknown> = {}): Promise<T> {
+export async function callTool<T = unknown>(
+  name: string,
+  args: Record<string, unknown> = {}
+): Promise<T> {
   const result = await sendRequest<McpToolCallResult>('tools/call', {
     name,
     arguments: args,
@@ -212,7 +225,7 @@ export async function callTool<T = unknown>(name: string, args: Record<string, u
 
   // Extract text content from the result
   if (result.content && result.content.length > 0) {
-    const textContent = result.content.find(c => c.type === 'text');
+    const textContent = result.content.find((c) => c.type === 'text');
     if (textContent?.text) {
       try {
         return JSON.parse(textContent.text) as T;
@@ -229,7 +242,10 @@ export async function callTool<T = unknown>(name: string, args: Record<string, u
  * List available tools
  */
 export async function listTools(): Promise<Array<{ name: string; description?: string }>> {
-  const result = await sendRequest<{ tools: Array<{ name: string; description?: string }> }>('tools/list', {});
+  const result = await sendRequest<{ tools: Array<{ name: string; description?: string }> }>(
+    'tools/list',
+    {}
+  );
   return result.tools || [];
 }
 

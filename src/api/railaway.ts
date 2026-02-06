@@ -29,7 +29,9 @@ interface McpCategoriesResponse {
 /**
  * Search RailAway products via MCP
  */
-export async function searchRailAway(params: RailAwaySearchParams = {}): Promise<RailAwayProduct[]> {
+export async function searchRailAway(
+  params: RailAwaySearchParams = {}
+): Promise<RailAwayProduct[]> {
   const result = await callTool<McpRailAwayResponse>('tourism__search_all_products', {
     text: params.query || '',
     category: params.category || null,
@@ -45,5 +47,5 @@ export async function searchRailAway(params: RailAwaySearchParams = {}): Promise
  */
 export async function getRailAwayCategories(): Promise<string[]> {
   const result = await callTool<McpCategoriesResponse>('tourism__get_railaway_categories', {});
-  return result.categories?.map(c => c.name) || [];
+  return result.categories?.map((c) => c.name) || [];
 }

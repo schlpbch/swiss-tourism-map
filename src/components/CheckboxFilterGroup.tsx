@@ -24,10 +24,7 @@ export default function CheckboxFilterGroup({
               isSelected ? 'bg-[var(--muted)]' : 'hover:bg-[var(--muted)]'
             )}
           >
-            <Checkbox
-              checked={isSelected}
-              onCheckedChange={() => onToggle(value)}
-            />
+            <Checkbox checked={isSelected} onCheckedChange={() => onToggle(value)} />
             <span className="text-sm text-[var(--foreground)]">{label}</span>
           </label>
         );

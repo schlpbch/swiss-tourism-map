@@ -5,6 +5,7 @@ import frTranslations from './fr.json';
 import itTranslations from './it.json';
 import hiTranslations from './hi.json';
 import zhTranslations from './zh.json';
+import type { I18nKey } from './keys';
 
 export type Lang = 'de' | 'en' | 'fr' | 'it' | 'hi' | 'zh';
 
@@ -33,7 +34,7 @@ const translations: Record<Lang, Record<string, any>> = {
  * Supports nested keys with dot notation (e.g., 'nav.map')
  * Falls back to English if key not found, then returns the key itself
  */
-export function t(lang: Lang, key: string, params?: Record<string, string | number>): string {
+export function t(lang: Lang, key: I18nKey, params?: Record<string, string | number>): string {
   // Handle nested keys with dot notation
   const keys = key.split('.');
   let value: any = translations[lang];

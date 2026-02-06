@@ -5,6 +5,7 @@ Eine interaktive Kartenanwendung zur Visualisierung von Schweizer Sehenswürdigk
 ## Features
 
 ### MVP (Aktuell implementiert)
+
 - ✅ **Interaktive Karte** mit Leaflet und OpenStreetMap
 - ✅ **287 Sehenswürdigkeiten** mit blauen Markern
 - ✅ **35 Resorts** mit braunen Markern
@@ -15,8 +16,9 @@ Eine interaktive Kartenanwendung zur Visualisierung von Schweizer Sehenswürdigk
 - ✅ **TypeScript** für Type Safety
 
 ### Geplante Features
+
 - 🔄 Sidebar mit Such- und Filterfunktion
-- 🔄 Marker-Clustering für bessere Performance
+- ✅ **Marker-Clustering** - vollständig implementiert
 - 🔄 Produkte-Tab mit detaillierten Informationen
 - ✅ **Mehrsprachigkeit (DE/EN/FR/IT/HI/ZH)** - vollständig implementiert
 - 🔄 Details-Modal für vollständige Informationen
@@ -25,6 +27,7 @@ Eine interaktive Kartenanwendung zur Visualisierung von Schweizer Sehenswürdigk
 ## Mehrsprachigkeit (i18n)
 
 Die Anwendung unterstützt sechs Sprachen:
+
 - 🇩🇪 **Deutsch (de)** - Standard
 - 🇬🇧 **English (en)**
 - 🇫🇷 **Français (fr)**
@@ -37,6 +40,7 @@ Die Anwendung unterstützt sechs Sprachen:
 Die Sprache kann auf drei Arten gesetzt werden (Priorität von oben nach unten):
 
 1. **URL Query Parameter**: `?lang=fr`
+
    ```
    http://localhost:4321/?lang=fr
    http://localhost:4321/sights?lang=zh
@@ -53,6 +57,7 @@ Die Sprache kann auf drei Arten gesetzt werden (Priorität von oben nach unten):
 ### Übersetzungen hinzufügen
 
 1. **Neue Keys hinzufügen**: Bearbeite alle JSON-Dateien in `src/i18n/`:
+
    ```json
    // src/i18n/de.json
    {
@@ -64,6 +69,7 @@ Die Sprache kann auf drei Arten gesetzt werden (Priorität von oben nach unten):
    ```
 
 2. **Im Code verwenden**:
+
    ```tsx
    import { t, useLanguageStore } from '../i18n';
 
@@ -74,8 +80,9 @@ Die Sprache kann auf drei Arten gesetzt werden (Priorität von oben nach unten):
    ```
 
 3. **Verschachtelte Keys**: Verwende Punkt-Notation
+
    ```tsx
-   t(language, 'nav.map') // "Karte", "Map", "Carte", etc.
+   t(language, 'nav.map'); // "Karte", "Map", "Carte", etc.
    ```
 
 ### Technische Details
@@ -93,19 +100,23 @@ Die Sprache kann auf drei Arten gesetzt werden (Priorität von oben nach unten):
 ## Technologie-Stack
 
 - **Frontend Framework**: Astro 5.x mit React Islands
-- **Mapping**: Leaflet + React-Leaflet
-- **Styling**: Tailwind CSS
-- **API Client**: Axios
-- **State Management**: TanStack Query (geplant), Zustand (geplant)
+- **Mapping**: Leaflet + React-Leaflet + React-Leaflet-Cluster
+- **Styling**: Tailwind CSS v4
+- **API Client**: Native Fetch API
+- **State Management**: Zustand (für i18n und Filter)
 - **TypeScript**: Strict Mode
+- **Testing**: Vitest (Unit) + Playwright (E2E)
+- **Code Quality**: ESLint + Prettier
 
 ## Voraussetzungen
 
 1. **Backend Server** muss laufen:
+
    ```bash
    cd c:\Users\schlp\code\swiss-tourism-mcp
    python src/swiss_tourism_mcp/api.py
    ```
+
    - Backend läuft auf: `http://localhost:8000`
    - API-Dokumentation: `http://localhost:8000/docs`
 
@@ -195,7 +206,6 @@ Die Anwendung nutzt das Swiss Tourism MCP Backend:
 
 - ⚠️ Backend muss auf Port 8000 laufen
 - ⚠️ CORS muss im Backend konfiguriert sein (bereits implementiert)
-- ⚠️ Marker-Clustering noch nicht implementiert (kann bei hohem Zoom langsam sein)
 
 ## Nächste Schritte
 
@@ -204,24 +214,19 @@ Die Anwendung nutzt das Swiss Tourism MCP Backend:
    - Filter nach Kategorien, Tags, Regionen
    - Prominence-Slider
 
-2. **Marker-Clustering** implementieren
-   - Verwende `leaflet.markercluster`
-   - Gruppiere Marker bei niedrigem Zoom-Level
-
-3. **Produkte-Tab** erstellen
+2. **Produkte-Tab** erstellen
    - RailAway Produktliste
    - Travel System Pässe
    - STC Holiday Packages
 
-4. **Mehrsprachigkeit** implementieren
-   - Zustand Store für Sprachwahl
-   - i18n Utilities
-   - UI-Übersetzungen
-
-5. **Details-Modal** hinzufügen
+3. **Details-Modal** hinzufügen
    - Vollständige Sehenswürdigkeiten-Informationen
    - Bilder und Links
    - Besucherinformationen
+
+4. **Performance Monitoring** hinzufügen
+   - Web Vitals tracking
+   - Custom metrics für Map-Performance
 
 ## Entwickler-Notizen
 

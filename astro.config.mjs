@@ -1,6 +1,6 @@
 // @ts-check
 import { defineConfig } from 'astro/config';
-import path from 'path';
+import path from 'node:path';
 
 import react from '@astrojs/react';
 import tailwindcss from '@tailwindcss/vite';
@@ -27,8 +27,8 @@ export default defineConfig({
           target: 'https://swiss-tourism-mcp.fastmcp.app',
           changeOrigin: true,
           secure: true,
-        }
-      }
-    }
-  }
+        },
+      },
+    },
+  },
 });

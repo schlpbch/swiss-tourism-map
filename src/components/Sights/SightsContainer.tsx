@@ -10,20 +10,14 @@ import { searchSights } from '../../api/sights';
 import { initializeMcp } from '../../api/mcp-client';
 import { t } from '../../i18n';
 import { useLanguageStore } from '../../store/languageStore';
+import { useDebounce } from '../../hooks/useDebounce';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import {
   Select,
   SelectContent,
@@ -33,9 +27,8 @@ import {
 } from '@/components/ui/select';
 import FullPageError from '../FullPageError';
 import EmptyFilterState from '../EmptyFilterState';
-import CardActionFooter from '../CardActionFooter';
-import BadgeList from '../BadgeList';
 import CheckboxFilterGroup from '../CheckboxFilterGroup';
+import SightCard from './SightCard';
 
 export default function SightsContainer() {
   const { language } = useLanguageStore();
@@ -49,6 +42,7 @@ export default function SightsContainer() {
   );
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const debouncedSearch = useDebounce(searchQuery);
 
   // Load data
   useEffect(() => {
@@ -74,7 +68,7 @@ export default function SightsContainer() {
 
   // Filter sights
   const filteredSights = useMemo(() => {
-    return sights.filter(sight => {
+    return sights.filter((sight) => {
       // Prominence filter
       if (selectedTiers.size < 4 && sight.prominence) {
         if (!selectedTiers.has(sight.prominence.tier)) {
@@ -90,8 +84,8 @@ export default function SightsContainer() {
       }
 
       // Search query filter
-      if (searchQuery) {
-        const query = searchQuery.toLowerCase();
+      if (debouncedSearch) {
+        const query = debouncedSearch.toLowerCase();
         const matchesTitle = sight.title.toLowerCase().includes(query);
         const matchesDescription = sight.description.toLowerCase().includes(query);
         const matchesRegion = sight.region?.toLowerCase().includes(query);
@@ -100,13 +94,13 @@ export default function SightsContainer() {
 
       return true;
     });
-  }, [sights, selectedTiers, selectedCategory, searchQuery]);
+  }, [sights, selectedTiers, selectedCategory, debouncedSearch]);
 
   // Get unique categories
   const categories = useMemo(() => {
     const cats = new Set<string>();
-    sights.forEach(sight => {
-      sight.category.forEach(cat => cats.add(cat));
+    sights.forEach((sight) => {
+      sight.category.forEach((cat) => cats.add(cat));
     });
     return Array.from(cats).sort();
   }, [sights]);
@@ -184,13 +178,15 @@ export default function SightsContainer() {
               <div className="space-y-2 mb-6">
                 <Label>{t(language, 'prominence.tiers')}</Label>
                 <CheckboxFilterGroup
-                  options={(['iconic', 'major', 'notable', 'hidden-gem'] as ProminenceTier[]).map(tier => ({
-                    value: tier,
-                    label: PROMINENCE_TIERS[tier].label,
-                  }))}
+                  options={(['iconic', 'major', 'notable', 'hidden-gem'] as ProminenceTier[]).map(
+                    (tier) => ({
+                      value: tier,
+                      label: PROMINENCE_TIERS[tier].label,
+                    })
+                  )}
                   selected={selectedTiers}
                   onToggle={(tier) => {
-                    setSelectedTiers(prev => {
+                    setSelectedTiers((prev) => {
                       const next = new Set(prev);
                       if (next.has(tier as ProminenceTier)) {
                         next.delete(tier as ProminenceTier);
@@ -214,7 +210,7 @@ export default function SightsContainer() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">{t(language, 'common.allCategories')}</SelectItem>
-                    {categories.map(cat => (
+                    {categories.map((cat) => (
                       <SelectItem key={cat} value={cat}>
                         {cat}
                       </SelectItem>
@@ -240,7 +236,10 @@ export default function SightsContainer() {
 
               {/* Results count */}
               <p className="mt-4 text-xs text-center text-[var(--muted-foreground)]">
-                {t(language, 'map.sightsCount', { displayed: filteredSights.length, total: sights.length })}
+                {t(language, 'map.sightsCount', {
+                  displayed: filteredSights.length,
+                  total: sights.length,
+                })}
               </p>
             </div>
           </ScrollArea>
@@ -260,7 +259,7 @@ export default function SightsContainer() {
               />
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {filteredSights.map(sight => (
+                {filteredSights.map((sight) => (
                   <SightCard key={sight.id} sight={sight} />
                 ))}
               </div>
@@ -269,60 +268,5 @@ export default function SightsContainer() {
         </ScrollArea>
       </div>
     </TooltipProvider>
-  );
-}
-
-// Sight Card Component
-function SightCard({ sight }: { sight: Sight }) {
-  const { language } = useLanguageStore();
-  const tierInfo = sight.prominence ? PROMINENCE_TIERS[sight.prominence.tier] : null;
-
-  return (
-    <Card className="overflow-hidden flex flex-col transition-all cursor-pointer hover:shadow-md">
-      {/* Header with prominence */}
-      {tierInfo && (
-        <div
-          className="px-4 py-2 text-xs font-medium flex justify-between items-center text-white"
-          style={{ backgroundColor: tierInfo.color }}
-        >
-          <span>{tierInfo.label}</span>
-          <span>{sight.prominence?.score}/100</span>
-        </div>
-      )}
-
-      {/* Content */}
-      <CardContent className="p-4 flex-1 flex flex-col">
-        <h3 className="font-bold text-base mb-2 text-[var(--primary)]">
-          {sight.title}
-        </h3>
-
-        {sight.region && (
-          <p className="text-xs mb-2 text-[var(--muted-foreground)]">
-            {sight.region}
-          </p>
-        )}
-
-        <p className="text-sm mb-3 line-clamp-3 flex-1 text-[var(--muted-foreground)]">
-          {sight.description}
-        </p>
-
-        {/* Categories */}
-        {sight.category.length > 0 && (
-          <BadgeList items={sight.category} variant="outline" maxVisible={3} className="mb-3" />
-        )}
-
-        {/* Tags */}
-        {sight.tags && sight.tags.length > 0 && (
-          <BadgeList items={sight.tags} variant="secondary" maxVisible={3} className="mb-3" />
-        )}
-
-        {/* Action Links */}
-        <CardActionFooter
-          externalUrl={sight.website || sight.url}
-          internalHref="/"
-          internalLabel={t(language, 'common.onMap')}
-        />
-      </CardContent>
-    </Card>
   );
 }

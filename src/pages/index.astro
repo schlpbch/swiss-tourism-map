@@ -6,6 +6,7 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import SbbHeader from '../components/SbbHeader';
 import MapContainer from '../components/Map/MapContainer';
+import ErrorBoundary from '../components/ErrorBoundary';
 ---
 
 <BaseLayout title="Schweizer Tourismus Karte">
@@ -14,8 +15,10 @@ import MapContainer from '../components/Map/MapContainer';
 
     <div class="flex-1 flex overflow-hidden">
       <!-- Main map container -->
-      <main class="flex-1 relative">
-        <MapContainer client:only="react" />
+      <main id="main-content" class="flex-1 relative">
+        <ErrorBoundary client:only="react">
+          <MapContainer client:only="react" />
+        </ErrorBoundary>
       </main>
     </div>
   </div>
