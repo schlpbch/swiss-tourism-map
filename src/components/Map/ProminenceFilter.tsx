@@ -7,9 +7,10 @@ import React from 'react';
 import type { ProminenceTier } from '../../types/sight';
 import {
   getProminenceTierColor,
-  getProminenceTierLabel,
   getProminenceTierEmoji,
 } from '../../utils/prominence';
+import { t } from '../../i18n';
+import { useLanguageStore } from '../../store/languageStore';
 
 interface ProminenceFilterProps {
   selectedTiers: Set<ProminenceTier>;
@@ -32,8 +33,20 @@ function ProminenceFilter({
   onToggleExpanded,
   hasActiveFilters,
 }: ProminenceFilterProps) {
+  const { language } = useLanguageStore();
   const allSelected = selectedTiers.size === 4;
   const noneSelected = selectedTiers.size === 0;
+
+  // Get tier label from i18n
+  const getTierLabel = (tier: ProminenceTier): string => {
+    const tierKeys: Record<ProminenceTier, string> = {
+      'iconic': 'prominence.iconic',
+      'major': 'prominence.major',
+      'notable': 'prominence.notable',
+      'hidden-gem': 'prominence.hiddenGem',
+    };
+    return t(language, tierKeys[tier]);
+  };
 
   return (
     <div
@@ -52,7 +65,7 @@ function ProminenceFilter({
         role="button"
         tabIndex={0}
         aria-expanded={isExpanded}
-        aria-label="Prominenz-Filter umschalten"
+        aria-label={t(language, 'prominence.toggleFilter')}
         onKeyDown={(e) => {
           if (e.key === 'Enter' || e.key === ' ') {
             e.preventDefault();
@@ -66,14 +79,14 @@ function ProminenceFilter({
             className="font-bold text-sm"
             style={{ color: 'var(--sbb-color-charcoal)' }}
           >
-            Prominenz-Filter
+            {t(language, 'prominence.filter')}
           </h3>
           {hasActiveFilters && (
             <span
               className="w-2 h-2 rounded-full"
               style={{ backgroundColor: 'var(--sbb-color-red)' }}
-              title="Filter aktiv"
-              aria-label="Filter ist aktiv"
+              title={t(language, 'prominence.filterActive')}
+              aria-label={t(language, 'prominence.filterActive')}
             />
           )}
         </div>
@@ -120,19 +133,19 @@ function ProminenceFilter({
                   e.currentTarget.style.backgroundColor = 'var(--sbb-color-red)';
                 }
               }}
-              aria-label={allSelected || noneSelected ? 'Alle Tiers auswählen' : 'Alle Tiers abwählen'}
+              aria-label={allSelected || noneSelected ? t(language, 'prominence.selectAllTiers') : t(language, 'prominence.deselectAllTiers')}
             >
-              {allSelected || noneSelected ? '✓ Alle auswählen' : '✕ Alle abwählen'}
+              {allSelected || noneSelected ? `✓ ${t(language, 'common.selectAll')}` : `✕ ${t(language, 'common.deselectAll')}`}
             </button>
           </div>
 
           {/* Tier checkboxes */}
-          <div className="space-y-2" role="group" aria-label="Prominenz-Tiers">
+          <div className="space-y-2" role="group" aria-label={t(language, 'prominence.tiers')}>
             {tiers.map((tier) => {
               const isSelected = selectedTiers.has(tier);
               const count = tierCounts[tier] || 0;
               const color = getProminenceTierColor(tier);
-              const label = getProminenceTierLabel(tier);
+              const label = getTierLabel(tier);
               const emoji = getProminenceTierEmoji(tier);
 
               return (
@@ -201,7 +214,7 @@ function ProminenceFilter({
                     checked={isSelected}
                     onChange={() => onToggleTier(tier)}
                     className="sr-only"
-                    aria-label={`${label} filtern (${count} Sehenswürdigkeiten)`}
+                    aria-label={t(language, 'prominence.filterTier', { tier: label, count })}
                   />
                 </label>
               );
@@ -217,12 +230,12 @@ function ProminenceFilter({
             }}
           >
             {noneSelected ? (
-              <span>Keine Sehenswürdigkeiten ausgewählt</span>
+              <span>{t(language, 'prominence.noSightsSelected')}</span>
             ) : (
               <span>
                 {selectedTiers.size === 4
-                  ? 'Alle Kategorien'
-                  : `${selectedTiers.size} von 4 Kategorien`}
+                  ? t(language, 'prominence.allCategories')
+                  : t(language, 'prominence.categoriesSelected', { count: selectedTiers.size })}
               </span>
             )}
           </div>

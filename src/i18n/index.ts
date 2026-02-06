@@ -33,7 +33,7 @@ const translations: Record<Lang, Record<string, any>> = {
  * Supports nested keys with dot notation (e.g., 'nav.map')
  * Falls back to English if key not found, then returns the key itself
  */
-export function t(lang: Lang, key: string): string {
+export function t(lang: Lang, key: string, params?: Record<string, string | number>): string {
   // Handle nested keys with dot notation
   const keys = key.split('.');
   let value: any = translations[lang];
@@ -52,11 +52,20 @@ export function t(lang: Lang, key: string): string {
           return key; // Return the key itself if not found in both
         }
       }
-      return typeof value === 'string' ? value : key;
+      break;
     }
   }
 
-  return typeof value === 'string' ? value : key;
+  let result = typeof value === 'string' ? value : key;
+
+  // Interpolate parameters like {count}, {year}, etc.
+  if (params) {
+    for (const [param, val] of Object.entries(params)) {
+      result = result.replace(new RegExp(`\\{${param}\\}`, 'g'), String(val));
+    }
+  }
+
+  return result;
 }
 
 /**

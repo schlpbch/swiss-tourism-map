@@ -14,6 +14,8 @@ import {
 } from '../../api/products';
 import type { RailAwayProduct } from '../../types/railaway';
 import { useLanguageStore } from '../../store/languageStore';
+import { useHoverStyle } from '../../hooks/useHoverStyle';
+import { t } from '../../i18n';
 
 type ProductTab = 'railaway' | 'travelpass' | 'holiday';
 
@@ -65,7 +67,7 @@ export default function ProductsContainer() {
         setTravelProducts(travel);
         setHolidayProducts(holiday);
       } catch (err) {
-        const errorMsg = err instanceof Error ? err.message : 'Fehler beim Laden der Produkte vom MCP-Server.';
+        const errorMsg = err instanceof Error ? err.message : t(language, 'errors.loadingProducts');
         setError(errorMsg);
       } finally {
         setLoading(false);
@@ -111,9 +113,9 @@ export default function ProductsContainer() {
   const holidayRegions = [...new Set(holidayProducts.map((p) => p.region).filter(Boolean))].sort();
 
   const tabs: { id: ProductTab; label: string; count: number }[] = [
-    { id: 'railaway', label: 'RailAway', count: filteredRailaway.length },
-    { id: 'travelpass', label: 'Swiss Travel System', count: filteredTravel.length },
-    { id: 'holiday', label: 'Ferienangebote', count: filteredHoliday.length },
+    { id: 'railaway', label: t(language, 'products.railaway'), count: filteredRailaway.length },
+    { id: 'travelpass', label: t(language, 'products.travelSystem'), count: filteredTravel.length },
+    { id: 'holiday', label: t(language, 'products.holidays'), count: filteredHoliday.length },
   ];
 
   if (loading) {
@@ -128,7 +130,7 @@ export default function ProductsContainer() {
             style={{ borderColor: 'var(--sbb-color-red)', borderTopColor: 'transparent' }}
           />
           <p className="mt-4 text-sm" style={{ color: 'var(--sbb-color-granite)' }}>
-            Lade Produkte...
+            {t(language, 'loadingMessages.products')}
           </p>
         </div>
       </div>
@@ -162,7 +164,7 @@ export default function ProductsContainer() {
               color: 'var(--sbb-color-white)',
             }}
           >
-            Neu laden
+            {t(language, 'common.reload')}
           </button>
         </div>
       </div>
@@ -213,7 +215,7 @@ export default function ProductsContainer() {
           style={{ backgroundColor: 'var(--sbb-color-white)', borderColor: 'var(--sbb-color-cloud)' }}
         >
           <h3 className="font-bold text-sm mb-4" style={{ color: 'var(--sbb-color-charcoal)' }}>
-            Filter
+            {t(language, 'common.filter')}
           </h3>
 
           {/* RailAway Filters */}
@@ -222,7 +224,7 @@ export default function ProductsContainer() {
               {/* Category Filter */}
               <div>
                 <label className="block text-sm font-medium mb-2" style={{ color: 'var(--sbb-color-charcoal)' }}>
-                  Kategorie
+                  {t(language, 'common.category')}
                 </label>
                 <select
                   value={railawayCategory}
@@ -234,7 +236,7 @@ export default function ProductsContainer() {
                     color: 'var(--sbb-color-charcoal)',
                   }}
                 >
-                  <option value="all">Alle Kategorien</option>
+                  <option value="all">{t(language, 'common.allCategories')}</option>
                   {railawayCategories.map((cat) => (
                     <option key={cat} value={cat}>
                       {cat}
@@ -246,7 +248,7 @@ export default function ProductsContainer() {
               {/* Price Filter */}
               <div>
                 <label className="block text-sm font-medium mb-2" style={{ color: 'var(--sbb-color-charcoal)' }}>
-                  Max. Preis: CHF {railawayMaxPrice}
+                  {t(language, 'products.maxPrice')}: CHF {railawayMaxPrice}
                 </label>
                 <input
                   type="range"
@@ -277,7 +279,7 @@ export default function ProductsContainer() {
                   (e.currentTarget.style.backgroundColor = 'var(--sbb-color-milk)')
                 }
               >
-                Filter zurücksetzen
+                {t(language, 'common.resetFilter')}
               </button>
             </div>
           )}
@@ -288,7 +290,7 @@ export default function ProductsContainer() {
               {/* Category Filter */}
               <div>
                 <label className="block text-sm font-medium mb-2" style={{ color: 'var(--sbb-color-charcoal)' }}>
-                  Kategorie
+                  {t(language, 'common.category')}
                 </label>
                 <select
                   value={travelCategory}
@@ -300,18 +302,18 @@ export default function ProductsContainer() {
                     color: 'var(--sbb-color-charcoal)',
                   }}
                 >
-                  <option value="all">Alle Kategorien</option>
+                  <option value="all">{t(language, 'common.allCategories')}</option>
                   {travelCategories.map((cat) => (
                     <option key={cat} value={cat}>
                       {cat === 'travel-pass'
-                        ? 'Reise-Pass'
+                        ? t(language, 'products.travelPass')
                         : cat === 'travel-pass-flex'
-                          ? 'Flex-Pass'
+                          ? t(language, 'products.flexPass')
                           : cat === 'discount-card'
-                            ? 'Rabattkarte'
+                            ? t(language, 'products.discountCard')
                             : cat === 'regional-pass'
-                              ? 'Regional-Pass'
-                              : 'Familienkarte'}
+                              ? t(language, 'products.regionalPass')
+                              : t(language, 'products.familyCard')}
                     </option>
                   ))}
                 </select>
@@ -320,7 +322,7 @@ export default function ProductsContainer() {
               {/* Duration Filter */}
               <div>
                 <label className="block text-sm font-medium mb-2" style={{ color: 'var(--sbb-color-charcoal)' }}>
-                  Dauer
+                  {t(language, 'products.duration')}
                 </label>
                 <select
                   value={travelDuration}
@@ -332,17 +334,17 @@ export default function ProductsContainer() {
                     color: 'var(--sbb-color-charcoal)',
                   }}
                 >
-                  <option value="all">Alle Tage</option>
-                  <option value="3">3 Tage</option>
-                  <option value="4">4 Tage</option>
-                  <option value="5plus">5+ Tage</option>
+                  <option value="all">{t(language, 'products.allDays')}</option>
+                  <option value="3">{t(language, 'products.threeDays')}</option>
+                  <option value="4">{t(language, 'products.fourDays')}</option>
+                  <option value="5plus">{t(language, 'products.fivePlusDays')}</option>
                 </select>
               </div>
 
               {/* Price Filter */}
               <div>
                 <label className="block text-sm font-medium mb-2" style={{ color: 'var(--sbb-color-charcoal)' }}>
-                  Max. Preis: CHF {travelMaxPrice}
+                  {t(language, 'products.maxPrice')}: CHF {travelMaxPrice}
                 </label>
                 <input
                   type="range"
@@ -374,7 +376,7 @@ export default function ProductsContainer() {
                   (e.currentTarget.style.backgroundColor = 'var(--sbb-color-milk)')
                 }
               >
-                Filter zurücksetzen
+                {t(language, 'common.resetFilter')}
               </button>
             </div>
           )}
@@ -385,7 +387,7 @@ export default function ProductsContainer() {
               {/* Category Filter */}
               <div>
                 <label className="block text-sm font-medium mb-2" style={{ color: 'var(--sbb-color-charcoal)' }}>
-                  Kategorie
+                  {t(language, 'common.category')}
                 </label>
                 <select
                   value={holidayCategory}
@@ -397,7 +399,7 @@ export default function ProductsContainer() {
                     color: 'var(--sbb-color-charcoal)',
                   }}
                 >
-                  <option value="all">Alle Kategorien</option>
+                  <option value="all">{t(language, 'common.allCategories')}</option>
                   {holidayCategories.map((cat) => (
                     <option key={cat} value={cat}>
                       {cat.replace(/-/g, ' ')}
@@ -409,7 +411,7 @@ export default function ProductsContainer() {
               {/* Region Filter */}
               <div>
                 <label className="block text-sm font-medium mb-2" style={{ color: 'var(--sbb-color-charcoal)' }}>
-                  Region
+                  {t(language, 'common.region')}
                 </label>
                 <select
                   value={holidayRegion}
@@ -421,7 +423,7 @@ export default function ProductsContainer() {
                     color: 'var(--sbb-color-charcoal)',
                   }}
                 >
-                  <option value="all">Alle Regionen</option>
+                  <option value="all">{t(language, 'common.allRegions')}</option>
                   {holidayRegions.map((region) => (
                     <option key={region} value={region}>
                       {region}
@@ -433,7 +435,7 @@ export default function ProductsContainer() {
               {/* Difficulty Filter */}
               <div>
                 <label className="block text-sm font-medium mb-2" style={{ color: 'var(--sbb-color-charcoal)' }}>
-                  Schwierigkeitsgrad
+                  {t(language, 'resorts.difficulty')}
                 </label>
                 <select
                   value={holidayDifficulty}
@@ -445,17 +447,17 @@ export default function ProductsContainer() {
                     color: 'var(--sbb-color-charcoal)',
                   }}
                 >
-                  <option value="all">Alle Level</option>
-                  <option value="easy">Einfach</option>
-                  <option value="moderate">Mittel</option>
-                  <option value="challenging">Schwierig</option>
+                  <option value="all">{t(language, 'products.allLevels')}</option>
+                  <option value="easy">{t(language, 'difficulty.easy')}</option>
+                  <option value="moderate">{t(language, 'difficulty.moderate')}</option>
+                  <option value="challenging">{t(language, 'difficulty.challenging')}</option>
                 </select>
               </div>
 
               {/* Duration Filter */}
               <div>
                 <label className="block text-sm font-medium mb-2" style={{ color: 'var(--sbb-color-charcoal)' }}>
-                  Max. Dauer: {holidayMaxDuration === 0 ? 'Unbegrenzt' : `${holidayMaxDuration} Tage`}
+                  {t(language, 'products.maxDuration')}: {holidayMaxDuration === 0 ? t(language, 'products.unlimited') : `${holidayMaxDuration} ${t(language, 'common.days')}`}
                 </label>
                 <input
                   type="range"
@@ -471,7 +473,7 @@ export default function ProductsContainer() {
               {/* Price Filter */}
               <div>
                 <label className="block text-sm font-medium mb-2" style={{ color: 'var(--sbb-color-charcoal)' }}>
-                  Max. Preis: CHF {holidayMaxPrice}
+                  {t(language, 'products.maxPrice')}: CHF {holidayMaxPrice}
                 </label>
                 <input
                   type="range"
@@ -505,7 +507,7 @@ export default function ProductsContainer() {
                   (e.currentTarget.style.backgroundColor = 'var(--sbb-color-milk)')
                 }
               >
-                Filter zurücksetzen
+                {t(language, 'common.resetFilter')}
               </button>
             </div>
           )}
@@ -524,7 +526,7 @@ export default function ProductsContainer() {
               ) : (
                 <div className="flex items-center justify-center h-64">
                   <p style={{ color: 'var(--sbb-color-granite)' }}>
-                    Keine Produkte mit den gewählten Filtern gefunden
+                    {t(language, 'products.noProductsFound')}
                   </p>
                 </div>
               )}
@@ -542,7 +544,7 @@ export default function ProductsContainer() {
               ) : (
                 <div className="flex items-center justify-center h-64">
                   <p style={{ color: 'var(--sbb-color-granite)' }}>
-                    Keine Produkte mit den gewählten Filtern gefunden
+                    {t(language, 'products.noProductsFound')}
                   </p>
                 </div>
               )}
@@ -560,7 +562,7 @@ export default function ProductsContainer() {
               ) : (
                 <div className="flex items-center justify-center h-64">
                   <p style={{ color: 'var(--sbb-color-granite)' }}>
-                    Keine Produkte mit den gewählten Filtern gefunden
+                    {t(language, 'products.noProductsFound')}
                   </p>
                 </div>
               )}
@@ -574,6 +576,8 @@ export default function ProductsContainer() {
 
 // RailAway Product Card
 function RailAwayCard({ product }: { product: RailAwayProduct }) {
+  const { language } = useLanguageStore();
+  const cardHover = useHoverStyle('card');
   const categoryColors: Record<string, string> = {
     "Snow'n'Rail": '#94A3B8',
     "Hike'n'Rail": '#86AFBF',
@@ -599,12 +603,7 @@ function RailAwayCard({ product }: { product: RailAwayProduct }) {
         backgroundColor: 'var(--sbb-color-white)',
         border: '1px solid var(--sbb-color-cloud)',
       }}
-      onMouseEnter={(e) => {
-        e.currentTarget.style.boxShadow = '0 2px 6px rgba(0, 0, 0, 0.08)';
-      }}
-      onMouseLeave={(e) => {
-        e.currentTarget.style.boxShadow = '0 1px 3px rgba(0, 0, 0, 0.05)';
-      }}
+      {...cardHover}
     >
       {/* Category Header */}
       <div
@@ -638,7 +637,7 @@ function RailAwayCard({ product }: { product: RailAwayProduct }) {
             style={{ borderColor: 'var(--sbb-color-cloud)' }}
           >
             <span className="text-sm" style={{ color: 'var(--sbb-color-granite)' }}>
-              Ab
+              {t(language, 'common.from')}
             </span>
             <span className="font-bold text-lg" style={{ color: 'var(--sbb-color-red)' }}>
               CHF {product.price.from}
@@ -652,12 +651,14 @@ function RailAwayCard({ product }: { product: RailAwayProduct }) {
 
 // Travel System Product Card
 function TravelSystemCard({ product }: { product: TravelSystemProduct }) {
+  const { language } = useLanguageStore();
+  const cardHover = useHoverStyle('card');
   const categoryLabels: Record<string, string> = {
-    'travel-pass': 'Reise-Pass',
-    'travel-pass-flex': 'Flex-Pass',
-    'discount-card': 'Rabattkarte',
-    'regional-pass': 'Regional-Pass',
-    'family-card': 'Familienkarte',
+    'travel-pass': t(language, 'products.travelPass'),
+    'travel-pass-flex': t(language, 'products.flexPass'),
+    'discount-card': t(language, 'products.discountCard'),
+    'regional-pass': t(language, 'products.regionalPass'),
+    'family-card': t(language, 'products.familyCard'),
   };
 
   const handleClick = () => {
@@ -674,12 +675,7 @@ function TravelSystemCard({ product }: { product: TravelSystemProduct }) {
         backgroundColor: 'var(--sbb-color-white)',
         border: '1px solid var(--sbb-color-cloud)'
       }}
-      onMouseEnter={(e) => {
-        e.currentTarget.style.boxShadow = '0 2px 6px rgba(0, 0, 0, 0.08)';
-      }}
-      onMouseLeave={(e) => {
-        e.currentTarget.style.boxShadow = '0 1px 3px rgba(0, 0, 0, 0.05)';
-      }}
+      {...cardHover}
     >
       {/* Category Header */}
       <div
@@ -701,8 +697,8 @@ function TravelSystemCard({ product }: { product: TravelSystemProduct }) {
         {/* Duration */}
         {product.duration && (
           <p className="text-sm mb-2" style={{ color: 'var(--sbb-color-granite)' }}>
-            {product.duration.days} Tage
-            {product.duration.type === 'flex' && ' (flexibel)'}
+            {product.duration.days} {t(language, 'common.days')}
+            {product.duration.type === 'flex' && ` (${t(language, 'products.flexible')})`}
           </p>
         )}
 
@@ -710,14 +706,14 @@ function TravelSystemCard({ product }: { product: TravelSystemProduct }) {
         {product.pricing && (
           <div className="mt-auto pt-2 border-t" style={{ borderColor: 'var(--sbb-color-cloud)' }}>
             <div className="flex justify-between text-sm">
-              <span style={{ color: 'var(--sbb-color-granite)' }}>2. Klasse</span>
+              <span style={{ color: 'var(--sbb-color-granite)' }}>{t(language, 'products.secondClass')}</span>
               <span className="font-bold" style={{ color: 'var(--sbb-color-charcoal)' }}>
                 CHF {product.pricing.adult_2nd}
               </span>
             </div>
             {product.pricing.adult_1st && (
               <div className="flex justify-between text-sm">
-                <span style={{ color: 'var(--sbb-color-granite)' }}>1. Klasse</span>
+                <span style={{ color: 'var(--sbb-color-granite)' }}>{t(language, 'products.firstClass')}</span>
                 <span className="font-bold" style={{ color: 'var(--sbb-color-charcoal)' }}>
                   CHF {product.pricing.adult_1st}
                 </span>
@@ -750,6 +746,8 @@ function TravelSystemCard({ product }: { product: TravelSystemProduct }) {
 
 // Holiday Product Card
 function HolidayCard({ product }: { product: HolidayProduct }) {
+  const { language } = useLanguageStore();
+  const cardHover = useHoverStyle('card');
   const categoryColors: Record<string, string> = {
     'train-journey': '#B08888',
     'themed-experience': '#9B88B2',
@@ -778,12 +776,7 @@ function HolidayCard({ product }: { product: HolidayProduct }) {
         backgroundColor: 'var(--sbb-color-white)',
         border: '1px solid var(--sbb-color-cloud)'
       }}
-      onMouseEnter={(e) => {
-        e.currentTarget.style.boxShadow = '0 2px 6px rgba(0, 0, 0, 0.08)';
-      }}
-      onMouseLeave={(e) => {
-        e.currentTarget.style.boxShadow = '0 1px 3px rgba(0, 0, 0, 0.05)';
-      }}
+      {...cardHover}
     >
       {/* Category Header */}
       <div
@@ -820,8 +813,8 @@ function HolidayCard({ product }: { product: HolidayProduct }) {
           {product.region && <span>{product.region}</span>}
           {product.duration && (
             <span>
-              {product.duration.days} Tage
-              {product.duration.nights && ` / ${product.duration.nights} Nächte`}
+              {product.duration.days} {t(language, 'common.days')}
+              {product.duration.nights && ` / ${product.duration.nights} ${t(language, 'common.nights')}`}
             </span>
           )}
         </div>
@@ -845,7 +838,7 @@ function HolidayCard({ product }: { product: HolidayProduct }) {
             style={{ borderColor: 'var(--sbb-color-cloud)' }}
           >
             <span className="text-sm" style={{ color: 'var(--sbb-color-granite)' }}>
-              Ab
+              {t(language, 'common.from')}
             </span>
             <span className="font-bold text-lg" style={{ color: 'var(--sbb-color-red)' }}>
               CHF {product.price.from}

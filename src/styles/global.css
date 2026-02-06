@@ -6,41 +6,16 @@
 
 @layer base {
   :root {
-    /* Calm color palette for tourism - soft, muted, nature-inspired */
-    --calm-primary: #4A9FA5;      /* Soft teal - main accent */
-    --calm-primary-light: #6DB5BB; /* Lighter teal */
-    --calm-primary-dark: #2A7F85;  /* Darker teal */
-    --calm-secondary: #6B9E7F;    /* Soft sage green - secondary accent */
-    --calm-secondary-light: #8BB39D; /* Lighter sage */
-    --calm-accent: #B8A87D;       /* Soft terracotta/sand - warm accent */
+    /* Map marker colors - using SBB design system */
+    --color-sight: var(--sbb-color-sky-light);
+    --color-resort: var(--sbb-color-orange-light);
+    --color-railaway: var(--sbb-color-green-light);
 
-    /* Map marker colors - calm palette */
-    --color-sight: #4A9FA5;       /* Teal for sights */
-    --color-resort: #8BB39D;      /* Sage green for resorts */
-    --color-railaway: #6B9E7F;    /* Soft green for RailAway */
-
-    /* Prominence tiers - calm colors */
-    --color-iconic: #B8A87D;      /* Warm sand for iconic (90-100) */
-    --color-major: #7FB3A3;       /* Teal-green for major (70-89) */
-    --color-notable: #4A9FA5;     /* Teal for notable (40-69) */
-    --color-hidden: #A9B5BA;      /* Soft blue-gray for hidden gems (0-39) */
-
-    /* Calm background and text colors */
-    --calm-background: #F5F5F0;   /* Soft cream off-white */
-    --calm-background-alt: #EBEBDE; /* Slightly darker cream */
-    --calm-surface: #FFFFFF;      /* Clean white */
-    --calm-text: #4A4A4A;         /* Soft charcoal */
-    --calm-text-muted: #7A7A7A;   /* Muted gray */
-    --calm-border: #D4D4CC;       /* Soft neutral border */
-
-    /* Brand Colors override with calm palette */
-    --sbb-primary: #4A9FA5;
-    --sbb-primary-hover: #2A7F85;
-    --sbb-secondary: #6B9E7F;
-    --sbb-background: #F5F5F0;
-    --sbb-background-subtle: #EBEBDE;
-    --sbb-text: #4A4A4A;
-    --sbb-text-muted: #7A7A7A;
+    /* Prominence tiers - SBB colors */
+    --color-iconic: var(--sbb-color-red);
+    --color-major: var(--sbb-color-orange-light);
+    --color-notable: var(--sbb-color-sky-light);
+    --color-hidden: var(--sbb-color-granite);
   }
 
   * {
@@ -50,21 +25,21 @@
   }
 
   body {
-    font-family: "SBB Web", system-ui, -apple-system, sans-serif;
-    line-height: 1.5;
-    color: #4A4A4A;
-    background-color: #F5F5F0;
+    font-family: var(--sbb-typo-font-family);
+    line-height: var(--sbb-typo-line-height-text);
+    color: var(--sbb-color-charcoal);
+    background-color: var(--sbb-color-milk);
   }
 
   /* Font support for Hindi (Devanagari script) */
   html[lang="hi"] body {
-    font-family: "Noto Sans Devanagari", "SBB Web", system-ui, sans-serif;
+    font-family: "Noto Sans Devanagari", var(--sbb-typo-font-family);
     line-height: 1.6;
   }
 
   /* Font support for Chinese (CJK script) */
   html[lang="zh"] body {
-    font-family: "Noto Sans SC", "SBB Web", system-ui, sans-serif;
+    font-family: "Noto Sans SC", var(--sbb-typo-font-family);
     line-height: 1.6;
   }
 
@@ -76,76 +51,76 @@
 
 /* Leaflet overrides with SBB fonts */
 .leaflet-container {
-  font-family: "SBB Web", system-ui, -apple-system, sans-serif;
+  font-family: var(--sbb-typo-font-family);
 }
 
-/* Custom marker cluster colors - calm palette */
+/* Custom marker cluster colors - SBB design system */
 .marker-cluster-sight {
-  background-color: rgba(74, 159, 165, 0.6); /* calm teal */
+  background-color: color-mix(in srgb, var(--sbb-color-sky-light) 60%, transparent);
 }
 
 .marker-cluster-resort {
-  background-color: rgba(107, 158, 127, 0.6); /* calm sage green */
+  background-color: color-mix(in srgb, var(--sbb-color-orange-light) 60%, transparent);
 }
 
 .marker-cluster-railaway {
-  background-color: rgba(139, 179, 157, 0.6); /* calm light green */
+  background-color: color-mix(in srgb, var(--sbb-color-green-light) 60%, transparent);
 }
 
 .marker-cluster-sight div {
-  background-color: rgba(74, 159, 165, 0.8);
+  background-color: color-mix(in srgb, var(--sbb-color-sky-light) 80%, transparent);
 }
 
 .marker-cluster-resort div {
-  background-color: rgba(107, 158, 127, 0.8);
+  background-color: color-mix(in srgb, var(--sbb-color-orange-light) 80%, transparent);
 }
 
 .marker-cluster-railaway div {
-  background-color: rgba(139, 179, 157, 0.8);
+  background-color: color-mix(in srgb, var(--sbb-color-green-light) 80%, transparent);
 }
 
 /* SBB-styled popups */
 .leaflet-popup-content-wrapper {
   border-radius: var(--sbb-border-radius-4x);
-  box-shadow: 0 var(--sbb-shadow-elevation-level-3-shadow-1-offset-y) var(--sbb-shadow-elevation-level-3-shadow-1-blur) rgba(0, 0, 0, 0.15);
+  box-shadow: var(--sbb-box-shadow-level-3-soft);
 }
 
 .leaflet-popup-content {
-  font-family: "SBB Web", system-ui, -apple-system, sans-serif;
+  font-family: var(--sbb-typo-font-family);
 }
 
-/* SBB Button styles for map controls - calm palette */
+/* SBB Button styles for map controls */
 .sbb-button {
-  background-color: #4A9FA5;
+  background-color: var(--sbb-color-red);
   color: var(--sbb-color-white);
   border: none;
   padding: var(--sbb-spacing-responsive-xxxs) var(--sbb-spacing-responsive-xs);
   border-radius: var(--sbb-border-radius-4x);
-  font-family: "SBB Web", system-ui, -apple-system, sans-serif;
+  font-family: var(--sbb-typo-font-family);
   font-weight: 400;
   cursor: pointer;
   transition: background-color var(--sbb-animation-duration-4x) var(--sbb-animation-easing);
 }
 
 .sbb-button:hover {
-  background-color: #2A7F85;
+  background-color: var(--sbb-color-red125);
 }
 
 .sbb-button-secondary {
-  background-color: #6B9E7F;
+  background-color: var(--sbb-color-sky-light);
 }
 
 .sbb-button-secondary:hover {
-  background-color: #4A7F5F;
+  background-color: var(--sbb-color-night-light);
 }
 
-/* SBB Card styles - calm palette */
+/* SBB Card styles */
 .sbb-card {
-  background-color: #FFFFFF;
+  background-color: var(--sbb-color-white);
   border-radius: var(--sbb-border-radius-4x);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  box-shadow: var(--sbb-box-shadow-level-3-soft);
   padding: var(--sbb-spacing-responsive-xs);
-  border: 1px solid #D4D4CC;
+  border: 1px solid var(--sbb-color-cloud);
 }
 
 /* SBB Tag/Chip styles */
@@ -154,26 +129,26 @@
   align-items: center;
   padding: 2px 8px;
   border-radius: var(--sbb-border-radius-2x);
-  font-size: 0.75rem;
+  font-size: var(--sbb-typo-scale-0-75x);
   font-weight: 500;
 }
 
 .sbb-tag-sight {
-  background-color: rgba(74, 159, 165, 0.15);
-  color: #4A9FA5;
+  background-color: color-mix(in srgb, var(--sbb-color-sky-light) 15%, transparent);
+  color: var(--sbb-color-sky-light);
 }
 
 .sbb-tag-resort {
-  background-color: rgba(107, 158, 127, 0.15);
-  color: #6B9E7F;
+  background-color: color-mix(in srgb, var(--sbb-color-orange-light) 15%, transparent);
+  color: var(--sbb-color-orange-light);
 }
 
 .sbb-tag-railaway {
-  background-color: rgba(139, 179, 157, 0.15);
-  color: #8BB39D;
+  background-color: color-mix(in srgb, var(--sbb-color-green-light) 15%, transparent);
+  color: var(--sbb-color-green-light);
 }
 
 .sbb-tag-iconic {
-  background-color: rgba(184, 168, 125, 0.15);
-  color: #B8A87D;
+  background-color: color-mix(in srgb, var(--sbb-color-red) 15%, transparent);
+  color: var(--sbb-color-red);
 }

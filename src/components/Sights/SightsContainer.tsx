@@ -8,8 +8,11 @@ import type { Sight, ProminenceTier } from '../../types/sight';
 import { PROMINENCE_TIERS } from '../../types/sight';
 import { searchSights } from '../../api/sights';
 import { initializeMcp } from '../../api/mcp-client';
+import { t } from '../../i18n';
+import { useLanguageStore } from '../../store/languageStore';
 
 export default function SightsContainer() {
+  const { language } = useLanguageStore();
   const [sights, setSights] = useState<Sight[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -34,7 +37,7 @@ export default function SightsContainer() {
         setSights(data);
       } catch (err) {
         console.error('Error loading sights:', err);
-        setError('Fehler beim Laden der Sehenswürdigkeiten.');
+        setError(t(language, 'errors.loadingSights'));
       } finally {
         setLoading(false);
       }
@@ -95,7 +98,7 @@ export default function SightsContainer() {
             style={{ borderColor: 'var(--sbb-color-red)', borderTopColor: 'transparent' }}
           />
           <p className="mt-4 text-sm" style={{ color: 'var(--sbb-color-granite)' }}>
-            Lade Sehenswürdigkeiten...
+            {t(language, 'loadingMessages.sights')}
           </p>
         </div>
       </div>
@@ -141,7 +144,7 @@ export default function SightsContainer() {
           className="text-lg font-bold mb-4"
           style={{ color: 'var(--sbb-color-charcoal)' }}
         >
-          Filter
+          {t(language, 'common.filter')}
         </h2>
 
         {/* Search */}
@@ -150,13 +153,13 @@ export default function SightsContainer() {
             className="block text-sm font-medium mb-2"
             style={{ color: 'var(--sbb-color-charcoal)' }}
           >
-            Suche
+            {t(language, 'common.search')}
           </label>
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Name, Ort, Beschreibung..."
+            placeholder={t(language, 'sights.searchPlaceholder')}
             className="w-full px-3 py-2 rounded-lg text-sm"
             style={{
               backgroundColor: 'var(--sbb-color-white)',
@@ -172,7 +175,7 @@ export default function SightsContainer() {
             className="block text-sm font-medium mb-2"
             style={{ color: 'var(--sbb-color-charcoal)' }}
           >
-            Prominenz
+            {t(language, 'prominence.tiers')}
           </label>
           <div className="space-y-2">
             {(['iconic', 'major', 'notable', 'hidden-gem'] as ProminenceTier[]).map(tier => {
@@ -218,7 +221,7 @@ export default function SightsContainer() {
             className="block text-sm font-medium mb-2"
             style={{ color: 'var(--sbb-color-charcoal)' }}
           >
-            Kategorie
+            {t(language, 'common.category')}
           </label>
           <select
             value={selectedCategory}
@@ -230,7 +233,7 @@ export default function SightsContainer() {
               color: 'var(--sbb-color-charcoal)',
             }}
           >
-            <option value="all">Alle Kategorien</option>
+            <option value="all">{t(language, 'common.allCategories')}</option>
             {categories.map(cat => (
               <option key={cat} value={cat}>
                 {cat}
@@ -253,12 +256,12 @@ export default function SightsContainer() {
             border: '1px solid var(--sbb-color-cloud)',
           }}
         >
-          Filter zurücksetzen
+          {t(language, 'common.resetFilter')}
         </button>
 
         {/* Results count */}
         <div className="mt-4 text-xs text-center" style={{ color: 'var(--sbb-color-granite)' }}>
-          {filteredSights.length} von {sights.length} Sehenswürdigkeiten
+          {t(language, 'map.sightsCount', { displayed: filteredSights.length, total: sights.length })}
         </div>
       </div>
 
@@ -268,13 +271,13 @@ export default function SightsContainer() {
           className="text-2xl font-bold mb-6"
           style={{ color: 'var(--sbb-color-charcoal)' }}
         >
-          Schweizer Sehenswürdigkeiten
+          {t(language, 'sights.title')}
         </h1>
 
         {filteredSights.length === 0 ? (
           <div className="text-center py-12">
             <p className="text-sm" style={{ color: 'var(--sbb-color-granite)' }}>
-              Keine Sehenswürdigkeiten gefunden. Versuchen Sie andere Filter.
+              {t(language, 'sights.noSightsFound')} {t(language, 'common.tryDifferentFilters')}
             </p>
           </div>
         ) : (
@@ -291,6 +294,7 @@ export default function SightsContainer() {
 
 // Sight Card Component
 function SightCard({ sight }: { sight: Sight }) {
+  const { language } = useLanguageStore();
   const tierInfo = sight.prominence ? PROMINENCE_TIERS[sight.prominence.tier] : null;
 
   return (
@@ -395,7 +399,7 @@ function SightCard({ sight }: { sight: Sight }) {
               onMouseOver={(e) => e.currentTarget.style.backgroundColor = 'var(--sbb-color-red125)'}
               onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'var(--sbb-color-red)'}
             >
-              🌐 Website
+              {t(language, 'common.website')}
             </a>
           )}
           <a
@@ -408,7 +412,7 @@ function SightCard({ sight }: { sight: Sight }) {
             onMouseOver={(e) => e.currentTarget.style.backgroundColor = 'var(--sbb-color-red125)'}
             onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'var(--sbb-color-red)'}
           >
-            🗺️ Auf Karte
+            {t(language, 'common.onMap')}
           </a>
         </div>
       </div>

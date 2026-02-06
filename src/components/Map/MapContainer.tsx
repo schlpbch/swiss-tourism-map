@@ -13,7 +13,10 @@ import { getResorts } from '../../api/resorts';
 import { initializeMcp } from '../../api/mcp-client';
 import ProminenceFilter from './ProminenceFilter';
 import { useProminenceFilter } from '../../hooks/useProminenceFilter';
+import { useHoverStyle } from '../../hooks/useHoverStyle';
 import { getMarkerColorName, countSightsByTier } from '../../utils/prominence';
+import { t } from '../../i18n';
+import { useLanguageStore } from '../../store/languageStore';
 
 // Switzerland center coordinates
 const SWITZERLAND_CENTER: [number, number] = [46.8, 8.2];
@@ -44,6 +47,7 @@ const resortIcon = new Icon({
 });
 
 export default function MapContainer() {
+  const { language } = useLanguageStore();
   const [allSights, setAllSights] = useState<Sight[]>([]); // All sights for tier counts
   const [displayedSights, setDisplayedSights] = useState<Sight[]>([]); // Filtered sights for map display
   const [resorts, setResorts] = useState<Resort[]>([]);
@@ -85,6 +89,9 @@ export default function MapContainer() {
     prominenceRange,
   } = useProminenceFilter({ onFilterChange: handleFilterChange });
 
+  // Hover styles for buttons
+  const buttonHover = useHoverStyle('button-red');
+
   // Initial data load - load all sights to get tier counts and initial display
   useEffect(() => {
     async function loadData() {
@@ -103,7 +110,7 @@ export default function MapContainer() {
         setDisplayedSights(sightsData); // Initially display all
         setResorts(resortsData);
       } catch (err) {
-        setError('Fehler beim Laden der Daten vom MCP-Server. Bitte versuchen Sie es später erneut.');
+        setError(t(language, 'errors.loadingData'));
       } finally {
         setLoading(false);
       }
@@ -135,7 +142,7 @@ export default function MapContainer() {
             className="mt-4 text-sm"
             style={{ color: 'var(--sbb-color-granite)' }}
           >
-            Lade Tourismus-Daten...
+            {t(language, 'loadingMessages.tourismData')}
           </p>
         </div>
       </div>
@@ -162,7 +169,7 @@ export default function MapContainer() {
             className="text-lg font-semibold mb-2"
             style={{ color: 'var(--sbb-color-charcoal)' }}
           >
-            Fehler
+            {t(language, 'error')}
           </h3>
           <p
             className="mb-4 text-sm"
@@ -178,10 +185,9 @@ export default function MapContainer() {
               color: 'var(--sbb-color-white)',
               borderRadius: 'var(--sbb-border-radius-4x)'
             }}
-            onMouseOver={(e) => e.currentTarget.style.backgroundColor = 'var(--sbb-color-red125)'}
-            onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'var(--sbb-color-red)'}
+            {...buttonHover}
           >
-            Neu laden
+            {t(language, 'common.reload')}
           </button>
         </div>
       </div>
@@ -282,10 +288,9 @@ export default function MapContainer() {
                         backgroundColor: 'var(--sbb-color-red)',
                         color: 'white',
                       }}
-                      onMouseOver={(e) => e.currentTarget.style.backgroundColor = 'var(--sbb-color-red125)'}
-                      onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'var(--sbb-color-red)'}
+                      {...buttonHover}
                     >
-                      🌐 Website
+                      {t(language, 'common.website')}
                     </a>
                   )}
                   <a
@@ -295,10 +300,9 @@ export default function MapContainer() {
                       backgroundColor: 'var(--sbb-color-red)',
                       color: 'white',
                     }}
-                    onMouseOver={(e) => e.currentTarget.style.backgroundColor = 'var(--sbb-color-red125)'}
-                    onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'var(--sbb-color-red)'}
+                    {...buttonHover}
                   >
-                    🎫 Produkte
+                    {t(language, 'nav.products')}
                   </a>
                 </div>
               </div>
@@ -327,7 +331,7 @@ export default function MapContainer() {
                     📍 {resort.region}
                   </p>
                   <p style={{ color: 'var(--sbb-color-granite)' }}>
-                    ⛰️ Elevation: {resort.elevation}m
+                    ⛰️ {t(language, 'map.elevation', { elevation: resort.elevation })}
                   </p>
                 </div>
 
@@ -336,7 +340,7 @@ export default function MapContainer() {
                     className="text-xs font-semibold mb-1"
                     style={{ color: 'var(--sbb-color-charcoal)' }}
                   >
-                    Saisons:
+                    {t(language, 'map.seasons')}:
                   </p>
                   <div className="flex flex-wrap gap-1">
                     {resort.seasons.map((season) => {
@@ -355,7 +359,7 @@ export default function MapContainer() {
                             color: 'white'
                           }}
                         >
-                          {seasonEmojis[season] || '📅'} {season.charAt(0).toUpperCase() + season.slice(1)}
+                          {seasonEmojis[season] || '📅'} {t(language, `seasons.${season}`)}
                         </span>
                       );
                     })}
@@ -366,7 +370,7 @@ export default function MapContainer() {
                   className="text-xs"
                   style={{ color: 'var(--sbb-color-granite)' }}
                 >
-                  🏔️ Alpine Resort
+                  🏔️ {t(language, 'resorts.alpineResort')}
                 </p>
 
                 {/* Action Links */}
@@ -381,10 +385,9 @@ export default function MapContainer() {
                         backgroundColor: 'var(--sbb-color-red)',
                         color: 'white',
                       }}
-                      onMouseOver={(e) => e.currentTarget.style.backgroundColor = 'var(--sbb-color-red125)'}
-                      onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'var(--sbb-color-red)'}
+                      {...buttonHover}
                     >
-                      🌐 Website
+                      {t(language, 'common.website')}
                     </a>
                   )}
                   <a
@@ -394,10 +397,9 @@ export default function MapContainer() {
                       backgroundColor: 'var(--sbb-color-red)',
                       color: 'white',
                     }}
-                    onMouseOver={(e) => e.currentTarget.style.backgroundColor = 'var(--sbb-color-red125)'}
-                    onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'var(--sbb-color-red)'}
+                    {...buttonHover}
                   >
-                    🎫 Produkte
+                    {t(language, 'nav.products')}
                   </a>
                 </div>
               </div>
@@ -432,7 +434,7 @@ export default function MapContainer() {
             style={{ borderColor: 'var(--sbb-color-red)', borderTopColor: 'transparent' }}
           />
           <span className="text-xs" style={{ color: 'var(--sbb-color-granite)' }}>
-            Lade gefilterte Daten...
+            {t(language, 'loadingMessages.filteredData')}
           </span>
         </div>
       )}
@@ -453,7 +455,7 @@ export default function MapContainer() {
               style={{ backgroundColor: 'var(--sbb-color-sky-light)' }}
             />
             <span style={{ color: 'var(--sbb-color-charcoal)' }}>
-              {displayedSights.length} von {allSights.length} Sehenswürdigkeiten
+              {t(language, 'map.sightsCount', { displayed: displayedSights.length, total: allSights.length })}
             </span>
           </div>
           <div className="flex items-center gap-2">
@@ -462,7 +464,7 @@ export default function MapContainer() {
               style={{ backgroundColor: 'var(--sbb-color-orange-light)' }}
             />
             <span style={{ color: 'var(--sbb-color-charcoal)' }}>
-              {resorts.length} Resorts
+              {t(language, 'map.resortsCount', { count: resorts.length })}
             </span>
           </div>
         </div>
